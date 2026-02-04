@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ChevronRight, ChevronDown, Book, Sparkles } from 'lucide-react';
 import { navigation } from '@/data/navigation';
 import type { NavItem } from '@/types';
@@ -37,13 +37,11 @@ function NavItemComponent({
       <a
         href={item.href ?? '#'}
         onClick={(e) => {
-          if (!hasHref) {
-            e.preventDefault();
+          if (hasChildren) {
             toggleItem(item.id);
-            return;
-          }
-          if (hasChildren && !isExpanded) {
-            toggleItem(item.id);
+            if (!hasHref) {
+              e.preventDefault();
+            }
           }
         }}
         className={`flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
@@ -100,20 +98,6 @@ export function Sidebar({ isOpen, onClose, activeSection }: SidebarProps) {
     return expanded;
   });
 
-  useEffect(() => {
-    const parents = navigation.filter((item) =>
-      item.items?.some((child) => child.id === activeSection)
-    );
-
-    if (parents.length === 0) return;
-
-    setExpandedItems((prev) => {
-      const next = new Set(prev);
-      parents.forEach((item) => next.add(item.id));
-      return Array.from(next);
-    });
-  }, [activeSection]);
-
   const toggleItem = (id: string) => {
     setExpandedItems((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
@@ -125,14 +109,14 @@ export function Sidebar({ isOpen, onClose, activeSection }: SidebarProps) {
       {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
           onClick={onClose}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:sticky top-20 left-0 z-50 w-[280px] h-[calc(100vh-5rem)] bg-background border-r border-border transition-transform duration-300 ease-expo-out lg:translate-x-0 ${
+        className={`fixed lg:sticky top-16 lg:top-20 left-0 z-40 w-[85vw] max-w-[320px] lg:w-[280px] h-[calc(100vh-4rem)] lg:h-[calc(100vh-5rem)] bg-background border-r border-border transition-transform duration-300 ease-expo-out lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -166,27 +150,7 @@ export function Sidebar({ isOpen, onClose, activeSection }: SidebarProps) {
                 </span>
               </div>
               {navigation
-                .filter((item) => item.id === 'overview')
-                .map((item) => (
-                  <NavItemComponent
-                    key={item.id}
-                    item={item}
-                    activeSection={activeSection}
-                    expandedItems={expandedItems}
-                    toggleItem={toggleItem}
-                  />
-                ))}
-            </div>
-
-            {/* Other sections */}
-            <div className="space-y-1">
-              <div className="px-3 mb-2">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Documentation
-                </span>
-              </div>
-              {navigation
-                .filter((item) => !['introduction', 'overview'].includes(item.id))
+                .filter((item) => item.id !== 'introduction')
                 .map((item) => (
                   <NavItemComponent
                     key={item.id}

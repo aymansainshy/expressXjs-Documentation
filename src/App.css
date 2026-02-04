@@ -7,7 +7,7 @@ html {
 
 /* Selection color */
 ::selection {
-  background: rgba(60, 135, 58, 0.2);
+  background: rgba(255, 51, 102, 0.2);
   color: inherit;
 }
 
@@ -75,7 +75,7 @@ html {
 }
 
 .prose a {
-  color: #3c873a;
+  color: #FF3366;
   text-decoration: none;
   transition: opacity 0.2s;
 }

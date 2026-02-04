@@ -728,6 +728,19 @@ docSections.forEach((section) => {
   }
 });
 
+const docPageOrder = docSections.reduce<string[]>((order, section) => {
+  if (introGroupIds.includes(section.id)) {
+    if (!order.includes('introduction')) {
+      order.push('introduction');
+    }
+    return order;
+  }
+  if (docPageMap.has(section.id)) {
+    order.push(section.id);
+  }
+  return order;
+}, []);
+
 const docPageIds = new Set(docPageMap.keys());
 const defaultDocId = docPageIds.has('introduction')
   ? 'introduction'
@@ -1058,6 +1071,13 @@ function App() {
     route.page === 'docs' && route.docAnchor && docSectionMap.has(route.docAnchor)
       ? route.docAnchor
       : resolvedDocId;
+  const currentIndex = docPageOrder.indexOf(resolvedDocId);
+  const prevPageId = currentIndex > 0 ? docPageOrder[currentIndex - 1] : null;
+  const nextPageId =
+    currentIndex >= 0 && currentIndex < docPageOrder.length - 1
+      ? docPageOrder[currentIndex + 1]
+      : null;
+  const getDocTitle = (id: string) => docSectionMap.get(id)?.title ?? id;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -1084,6 +1104,38 @@ function App() {
               <div className="flex flex-col gap-8 xl:flex-row">
                 <div className="flex-1 max-w-3xl">
                   <DocContent sections={docSectionsForPage} pageId={resolvedDocId} />
+                  {(prevPageId || nextPageId) && (
+                    <div className="mt-12 border-t border-border pt-6 flex flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-between">
+                      {prevPageId ? (
+                        <a
+                          href={`${DOC_BASE}/${prevPageId}`}
+                          className="flex-1 rounded-lg border border-border/60 p-4 transition-colors hover:border-brand-primary/60 hover:bg-muted/40"
+                        >
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            Previous
+                          </p>
+                          <p className="mt-2 text-base font-semibold text-foreground">
+                            {getDocTitle(prevPageId)}
+                          </p>
+                        </a>
+                      ) : (
+                        <div className="flex-1" />
+                      )}
+                      {nextPageId && (
+                        <a
+                          href={`${DOC_BASE}/${nextPageId}`}
+                          className="flex-1 rounded-lg border border-border/60 p-4 transition-colors hover:border-brand-primary/60 hover:bg-muted/40"
+                        >
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            Next
+                          </p>
+                          <p className="mt-2 text-base font-semibold text-foreground">
+                            {getDocTitle(nextPageId)}
+                          </p>
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
                 {showToc && (
                   <TableOfContents

@@ -53,13 +53,13 @@ module.exports = {
           ring: "hsl(var(--sidebar-ring))",
         },
         brand: {
-          primary: '#3c873a',
-          'primary-dark': '#2f6f2f',
+          primary: '#FF3366',
+          'primary-dark': '#E62958',
           secondary: '#141416',
           'bg-dark': '#1A1A1E',
           'text-muted': '#6F6E77',
           border: '#E5E5E5',
-          'accent-blue': '#2a7bbd',
+          'accent-blue': '#3898EC',
           success: '#4CAF50',
           warning: '#FFC107',
         },
@@ -73,8 +73,8 @@ module.exports = {
       },
       boxShadow: {
         xs: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
-        glow: "0 0 20px rgba(60, 135, 58, 0.3)",
-        'glow-lg': "0 0 40px rgba(60, 135, 58, 0.4)",
+        glow: "0 0 20px rgba(255, 51, 102, 0.3)",
+        'glow-lg': "0 0 40px rgba(255, 51, 102, 0.4)",
         'code': "0 20px 50px rgba(0, 0, 0, 0.3)",
       },
       keyframes: {
@@ -95,8 +95,8 @@ module.exports = {
           "50%": { transform: "translateY(-10px)" },
         },
         "pulse-glow": {
-          "0%, 100%": { boxShadow: "0 0 20px rgba(60, 135, 58, 0.3)" },
-          "50%": { boxShadow: "0 0 40px rgba(60, 135, 58, 0.6)" },
+          "0%, 100%": { boxShadow: "0 0 20px rgba(255, 51, 102, 0.3)" },
+          "50%": { boxShadow: "0 0 40px rgba(255, 51, 102, 0.6)" },
         },
         "slide-up": {
           "0%": { opacity: "0", transform: "translateY(20px)" },
