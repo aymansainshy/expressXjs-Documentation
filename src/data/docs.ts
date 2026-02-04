@@ -35,7 +35,7 @@ and FRP (Functional Reactive Programming).
 Under the hood, Framework makes use of robust HTTP Server frameworks like Express (the default) and optionally 
 can be configured to use Fastify as well!
 
-Framework provides a level of abstraction above these common Node.js frameworks (Express/Fastify), but also 
+ExpressXjs provides a level of abstraction above these common Node.js frameworks (Express/Fastify), but also 
 exposes their APIs directly to the developer. This gives developers the freedom to use the myriad of third-party 
 modules which are available for the underlying platform.`
       },

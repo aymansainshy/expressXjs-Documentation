@@ -53,8 +53,8 @@ testable, scalable, loosely coupled, and easily maintainable applications. The a
     code: {
       language: 'bash',
       filename: 'Terminal',
-      content: `$ npm i -g @framework/cli
-$ framework new project-name`
+      content: `$ npm i -g @expressxjs/cli
+$ expressxjs new project-name`
     }
   },
   {

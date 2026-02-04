@@ -74,7 +74,7 @@ export function Header({ isDark, toggleTheme, onMenuClick, isSidebarOpen, curren
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
-            <span className="font-semibold text-lg hidden sm:block">Framework</span>
+            <span className="font-semibold text-lg hidden sm:block">ExpressXjs</span>
           </a>
         </div>
 
