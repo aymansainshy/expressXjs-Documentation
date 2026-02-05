@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Search, Github, Moon, Sun, Menu, X, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Link, useLocation } from 'react-router-dom';
+import { Search, Github, Moon, Sun, Menu, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -9,61 +8,64 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { headerLinks } from '@/data/navigation';
+import { Input } from '@/components/ui/input';
+import { mainNav } from '@/data/navigation';
+import { useTheme } from '@/context/ThemeContext';
 
 interface HeaderProps {
-  isDark: boolean;
-  toggleTheme: () => void;
-  onMenuClick: () => void;
-  isSidebarOpen: boolean;
-  currentPage: 'home' | 'docs' | 'examples' | 'community';
+  onMenuClick?: () => void;
+  showMenuButton?: boolean;
 }
 
-export function Header({ isDark, toggleTheme, onMenuClick, isSidebarOpen, currentPage }: HeaderProps) {
-  const [isScrolled, setIsScrolled] = useState(false);
+export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
+  const { isDark, toggleTheme } = useTheme();
+  const location = useLocation();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
+  // Track scroll position for header background
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      setIsScrolled(window.scrollY > 20);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Check initial position
+    
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-expo-out ${
-        isScrolled
-          ? 'h-16 glass border-b border-border/50 shadow-sm'
-          : 'h-20 bg-transparent'
+    <header 
+      className={`fixed top-0 left-0 right-0 z-50 h-16 transition-all duration-300 ease-out ${
+        isScrolled 
+          ? isDark 
+            ? 'bg-[#0D1117]/90 border-b border-[#30363D]/50 backdrop-blur-xl shadow-lg shadow-black/20'
+            : 'bg-white/90 border-b border-gray-200/50 backdrop-blur-xl shadow-sm'
+          : 'bg-transparent'
       }`}
     >
       <div className="h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between max-w-[1600px] mx-auto">
         {/* Left section */}
         <div className="flex items-center gap-4">
-          {currentPage === 'docs' && (
+          {showMenuButton && (
             <button
               onClick={onMenuClick}
-              className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-muted transition-colors"
+              className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
               aria-label="Toggle menu"
             >
-              {isSidebarOpen ? (
-                <X className="w-5 h-5" />
-              ) : (
-                <Menu className="w-5 h-5" />
-              )}
+              <Menu className="w-5 h-5" />
             </button>
           )}
 
           {/* Logo */}
-          <a
-            href="#/"
-            className="flex items-center gap-2 group transition-transform duration-300 ease-elastic hover:scale-105"
+          <Link
+            to="/"
+            className="flex items-center gap-2 group transition-transform duration-300 hover:scale-105"
           >
-            <div className="w-8 h-8 rounded-lg bg-brand-primary flex items-center justify-center shadow-glow group-hover:shadow-glow-lg transition-shadow">
+            <div className="w-8 h-8 rounded-lg bg-brand-primary flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
               <svg
                 viewBox="0 0 24 24"
                 className="w-5 h-5 text-white"
@@ -74,32 +76,32 @@ export function Header({ isDark, toggleTheme, onMenuClick, isSidebarOpen, curren
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
-            <span className="font-semibold text-lg hidden sm:block">ExpressXjs</span>
-          </a>
+            <span className={`font-semibold text-lg hidden sm:block transition-colors ${
+              isScrolled ? 'text-foreground' : 'text-foreground'
+            }`}>Framework</span>
+          </Link>
         </div>
 
-        {/* Center navigation */}
+        {/* Center navigation - Desktop */}
         <nav className="hidden lg:flex items-center gap-1">
-          {headerLinks.map((link) => {
-            const isActive = link.page === currentPage;
-            return (
-              <a
-                key={link.label}
-                href={link.href}
-                className={`relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-                  isActive
-                    ? 'text-brand-primary'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                }`}
-                aria-current={isActive ? 'page' : undefined}
-              >
-                {link.label}
-                {isActive && (
-                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-brand-primary" />
-                )}
-              </a>
-            );
-          })}
+          {mainNav.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={`relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                location.pathname === link.path || location.pathname.startsWith(link.path + '/')
+                  ? 'text-brand-primary'
+                  : isScrolled
+                    ? 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
+              }`}
+            >
+              {link.label}
+              {(location.pathname === link.path || location.pathname.startsWith(link.path + '/')) && (
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-brand-primary" />
+              )}
+            </Link>
+          ))}
         </nav>
 
         {/* Right section */}
@@ -108,12 +110,16 @@ export function Header({ isDark, toggleTheme, onMenuClick, isSidebarOpen, curren
           <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
             <DialogTrigger asChild>
               <button
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200"
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                  isScrolled
+                    ? 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
+                }`}
                 aria-label="Search"
               >
                 <Search className="w-4 h-4" />
                 <span className="hidden md:inline text-sm">Search</span>
-                <kbd className="hidden lg:inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-mono bg-muted rounded border">
+                <kbd className="hidden lg:inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-mono bg-black/5 dark:bg-white/10 rounded border border-black/10 dark:border-white/10">
                   <span className="text-xs">⌘</span>K
                 </kbd>
               </button>
@@ -145,23 +151,6 @@ export function Header({ isDark, toggleTheme, onMenuClick, isSidebarOpen, curren
                   Start typing to search documentation...
                 </p>
               </div>
-              <div className="p-3 border-t bg-muted/50 flex items-center justify-between text-xs text-muted-foreground">
-                <div className="flex items-center gap-3">
-                  <span className="flex items-center gap-1">
-                    <kbd className="px-1.5 py-0.5 bg-background rounded border">↑</kbd>
-                    <kbd className="px-1.5 py-0.5 bg-background rounded border">↓</kbd>
-                    <span>to navigate</span>
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <kbd className="px-1.5 py-0.5 bg-background rounded border">↵</kbd>
-                    <span>to select</span>
-                  </span>
-                </div>
-                <span className="flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 bg-background rounded border">esc</kbd>
-                  <span>to close</span>
-                </span>
-              </div>
             </DialogContent>
           </Dialog>
 
@@ -170,7 +159,11 @@ export function Header({ isDark, toggleTheme, onMenuClick, isSidebarOpen, curren
             href="https://github.com/framework/framework"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200"
+            className={`p-2 rounded-lg transition-all duration-200 ${
+              isScrolled
+                ? 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
+                : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
+            }`}
             aria-label="GitHub"
           >
             <Github className="w-5 h-5" />
@@ -179,7 +172,11 @@ export function Header({ isDark, toggleTheme, onMenuClick, isSidebarOpen, curren
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200"
+            className={`p-2 rounded-lg transition-all duration-200 ${
+              isScrolled
+                ? 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
+                : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
+            }`}
             aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {isDark ? (
@@ -189,15 +186,44 @@ export function Header({ isDark, toggleTheme, onMenuClick, isSidebarOpen, curren
             )}
           </button>
 
-          {/* CTA Button */}
-          <Button
-            className="hidden sm:flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white transition-all duration-200 hover:gap-3"
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className={`lg:hidden p-2 rounded-lg transition-all duration-200 ${
+              isScrolled
+                ? 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
+                : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
+            }`}
+            aria-label="Toggle mobile menu"
           >
-            Get Started
-            <ChevronRight className="w-4 h-4" />
-          </Button>
+            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile Navigation */}
+      {isMobileMenuOpen && (
+        <div className={`lg:hidden absolute top-16 left-0 right-0 border-b shadow-lg transition-colors ${
+          isDark ? 'bg-[#0D1117] border-[#30363D]' : 'bg-white border-gray-200'
+        }`}>
+          <nav className="flex flex-col p-4 space-y-1">
+            {mainNav.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  location.pathname === link.path || location.pathname.startsWith(link.path + '/')
+                    ? 'text-brand-primary bg-brand-primary/5'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

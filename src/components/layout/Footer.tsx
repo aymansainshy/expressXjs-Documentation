@@ -1,31 +1,32 @@
+import { Link } from 'react-router-dom';
 import { Github, Twitter, MessageCircle, Heart } from 'lucide-react';
 
 const footerLinks = {
   product: {
     title: 'Product',
     links: [
-      { label: 'Documentation', href: '#docs' },
-      { label: 'API Reference', href: '#api' },
-      { label: 'Examples', href: '#examples' },
-      { label: 'Changelog', href: '#changelog' },
+      { label: 'Documentation', href: '/docs' },
+      { label: 'API Reference', href: '/docs/api-reference' },
+      { label: 'Examples', href: '/examples' },
+      { label: 'Changelog', href: '/docs/changelog' },
     ],
   },
   resources: {
     title: 'Resources',
     links: [
-      { label: 'Community', href: '#community' },
-      { label: 'Blog', href: '#blog' },
-      { label: 'Tutorials', href: '#tutorials' },
-      { label: 'Support', href: '#support' },
+      { label: 'Community', href: '/community' },
+      { label: 'Blog', href: '/blog' },
+      { label: 'Tutorials', href: '/docs/tutorials' },
+      { label: 'Support', href: '/support' },
     ],
   },
   company: {
     title: 'Company',
     links: [
-      { label: 'About', href: '#about' },
-      { label: 'Careers', href: '#careers' },
-      { label: 'Contact', href: '#contact' },
-      { label: 'Brand', href: '#brand' },
+      { label: 'About', href: '/about' },
+      { label: 'Careers', href: '/careers' },
+      { label: 'Contact', href: '/contact' },
+      { label: 'Brand', href: '/brand' },
     ],
   },
 };
@@ -43,7 +44,7 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 lg:gap-12">
           {/* Logo and description */}
           <div className="col-span-2 md:col-span-4 lg:col-span-2">
-            <a href="#" className="flex items-center gap-2 mb-4">
+            <Link to="/" className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg bg-brand-primary flex items-center justify-center shadow-glow">
                 <svg
                   viewBox="0 0 24 24"
@@ -56,7 +57,7 @@ export function Footer() {
                 </svg>
               </div>
               <span className="font-semibold text-lg">Framework</span>
-            </a>
+            </Link>
             <p className="text-sm text-muted-foreground max-w-xs mb-6">
               A progressive Node.js framework for building efficient, scalable, and enterprise-grade server-side applications.
             </p>
@@ -83,13 +84,13 @@ export function Footer() {
               <ul className="space-y-3">
                 {column.links.map((link) => (
                   <li key={link.label}>
-                    <a
-                      href={link.href}
+                    <Link
+                      to={link.href}
                       className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 inline-flex items-center gap-1 group"
                     >
                       {link.label}
                       <span className="opacity-0 group-hover:opacity-100 transition-opacity">→</span>
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -103,15 +104,15 @@ export function Footer() {
             Made with <Heart className="w-4 h-4 text-brand-primary fill-brand-primary" /> by the Framework Team
           </p>
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <a href="#privacy" className="hover:text-foreground transition-colors">
+            <Link to="/privacy" className="hover:text-foreground transition-colors">
               Privacy Policy
-            </a>
-            <a href="#terms" className="hover:text-foreground transition-colors">
+            </Link>
+            <Link to="/terms" className="hover:text-foreground transition-colors">
               Terms of Service
-            </a>
-            <a href="#license" className="hover:text-foreground transition-colors">
+            </Link>
+            <Link to="/license" className="hover:text-foreground transition-colors">
               License
-            </a>
+            </Link>
           </div>
         </div>
       </div>

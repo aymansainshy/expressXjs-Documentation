@@ -1,7 +1,7 @@
 export interface NavItem {
   id: string;
   title: string;
-  href?: string;
+  href: string;
   items?: NavItem[];
   collapsed?: boolean;
 }

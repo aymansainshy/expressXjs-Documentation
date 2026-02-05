@@ -4,10 +4,9 @@ import type { TocItem } from '@/types';
 interface TableOfContentsProps {
   items: TocItem[];
   activeId?: string;
-  pageId?: string;
 }
 
-export function TableOfContents({ items, activeId, pageId }: TableOfContentsProps) {
+export function TableOfContents({ items, activeId }: TableOfContentsProps) {
   const [currentId, setCurrentId] = useState(activeId || items[0]?.id);
 
   useEffect(() => {
@@ -44,13 +43,7 @@ export function TableOfContents({ items, activeId, pageId }: TableOfContentsProp
               style={{ paddingLeft: `${(item.level - 1) * 12}px` }}
             >
               <a
-                href={
-                  pageId
-                    ? item.id === pageId
-                      ? `#/doc/${pageId}`
-                      : `#/doc/${pageId}/${item.id}`
-                    : `#${item.id}`
-                }
+                href={`#${item.id}`}
                 className={`block px-3 py-1.5 text-sm transition-all duration-200 border-l-2 -ml-[2px] ${
                   currentId === item.id
                     ? 'text-brand-primary border-brand-primary font-medium'

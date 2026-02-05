@@ -223,4 +223,3 @@ For support, email support@framework.com or join our Discord community.
 ---
 
 Built with ❤️ by the Framework Team
-# expressXjs-Documentation
