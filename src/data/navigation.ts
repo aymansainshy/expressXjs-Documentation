@@ -85,11 +85,7 @@ export const docsNavigation: NavItem[] = [
       { id: 'commands', title: 'Commands', path: '/docs/cli/commands' },
     ],
   },
-  {
-    id: 'faq',
-    title: 'FAQ',
-    path: '/docs/faq',
-  },
+
   {
     id: 'recipes',
     title: 'Recipes',
@@ -99,5 +95,11 @@ export const docsNavigation: NavItem[] = [
       { id: 'swagger', title: 'Swagger', path: '/docs/recipes/swagger' },
       { id: 'deployment', title: 'Deployment', path: '/docs/recipes/deployment' },
     ],
+  },
+
+  {
+    id: 'faq',
+    title: 'FAQ',
+    path: '/docs/faq',
   },
 ];

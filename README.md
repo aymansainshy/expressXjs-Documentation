@@ -1,8 +1,8 @@
-# Framework Documentation
+# ExpressXjs Documentation
 
 A modern, production-ready documentation website built with React, TypeScript, and Tailwind CSS. Inspired by the NestJS documentation design.
 
-![Framework Documentation](https://i.imgur.com/your-screenshot.png)
+![ExpressXjs Documentation](https://i.imgur.com/your-screenshot.png)
 
 ## Features
 
@@ -17,7 +17,7 @@ A modern, production-ready documentation website built with React, TypeScript, a
 
 ## Tech Stack
 
-- **Framework**: React 18 with TypeScript
+- **ExpressXjs**: React 18 with TypeScript
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS
 - **UI Components**: shadcn/ui
@@ -28,41 +28,45 @@ A modern, production-ready documentation website built with React, TypeScript, a
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/yourusername/framework-docs.git
 cd framework-docs
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Start the development server:
+
 ```bash
 npm run dev
 ```
 
 4. Open your browser and navigate to:
+
 ```
 http://localhost:5173
 ```
 
 ## Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server with hot reload |
-| `npm run build` | Build for production |
-| `npm run preview` | Preview production build locally |
-| `npm run lint` | Run ESLint |
-| `npm run type-check` | Run TypeScript type checking |
+| Command              | Description                              |
+| -------------------- | ---------------------------------------- |
+| `npm run dev`        | Start development server with hot reload |
+| `npm run build`      | Build for production                     |
+| `npm run preview`    | Preview production build locally         |
+| `npm run lint`       | Run ESLint                               |
+| `npm run type-check` | Run TypeScript type checking             |
 
 ## Project Structure
 
@@ -110,6 +114,7 @@ http://localhost:5173
 ### Adding Code Examples
 
 Code blocks support the following languages:
+
 - `typescript`
 - `javascript`
 - `bash` / `shell`
@@ -118,6 +123,7 @@ Code blocks support the following languages:
 - `dockerfile`
 
 Example:
+
 ```typescript
 {
   code: {
@@ -150,6 +156,7 @@ export class ExampleController {
 ## Building for Production
 
 1. Build the project:
+
 ```bash
 npm run build
 ```
@@ -157,6 +164,7 @@ npm run build
 2. The build output will be in the `dist/` directory
 
 3. Preview the production build locally:
+
 ```bash
 npm run preview
 ```
@@ -176,11 +184,13 @@ The built files in `dist/` can be deployed to any static hosting service:
 ### Docker Deployment
 
 1. Build the Docker image:
+
 ```bash
 docker build -t framework-docs .
 ```
 
 2. Run the container:
+
 ```bash
 docker run -p 80:80 framework-docs
 ```

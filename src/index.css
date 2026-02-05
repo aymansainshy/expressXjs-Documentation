@@ -37,6 +37,25 @@
     --brand-accent-blue: #3898EC;
     --brand-success: #3FB950;
     --brand-warning: #FFC107;
+
+    /* Code theme - VS Code Dark Modern */
+    --code-bg: #1F1F1F;
+    --code-surface: #252526;
+    --code-border: #2D2D2D;
+    --code-fg: #D4D4D4;
+    --code-muted: #9DA5B4;
+    --code-line-number: #858585;
+    --code-comment: #6A9955;
+    --code-keyword: #569CD6;
+    --code-string: #CE9178;
+    --code-number: #B5CEA8;
+    --code-function: #DCDCAA;
+    --code-type: #4EC9B0;
+    --code-variable: #9CDCFE;
+    --code-constant: #4FC1FF;
+    --code-decorator: #DCDCAA;
+    --code-regex: #D16969;
+    --code-error: #F44747;
     
     /* Animation easings */
     --ease-expo-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -91,10 +110,10 @@
    SYNTAX HIGHLIGHTING - COLORFUL CODE
    ============================================ */
 
-/* Base code block styles (VS Code Dark+) */
+/* Base code block styles (VS Code Dark Modern) */
 .code-block pre,
 pre[class*="language-"] {
-  background: #1E1E1E !important;
+  background: var(--code-bg) !important;
   margin: 0 !important;
   padding: 1.25rem !important;
   overflow-x: auto;
@@ -102,128 +121,132 @@ pre[class*="language-"] {
 }
 
 code[class*="language-"] {
-  color: #D4D4D4 !important;
+  color: var(--code-fg) !important;
   text-shadow: none !important;
   font-family: 'Fira Code', 'SF Mono', Monaco, monospace !important;
   font-size: 14px !important;
   line-height: 1.7 !important;
 }
 
-/* Comments - VS Code Green */
+/* Comments */
 .token.comment,
 .token.prolog,
 .token.doctype,
 .token.cdata {
-  color: #6A9955 !important;
+  color: var(--code-comment) !important;
   font-style: italic !important;
 }
 
-/* Keywords - VS Code Blue */
+/* Keywords */
 .token.keyword,
 .token.operator,
 .token.builtin {
-  color: #569CD6 !important;
+  color: var(--code-keyword) !important;
 }
 
-/* Strings - VS Code Orange */
+/* Strings */
 .token.string,
 .token.char,
 .token.attr-value {
-  color: #CE9178 !important;
+  color: var(--code-string) !important;
 }
 
-/* Numbers - VS Code Light Green */
+/* Numbers */
 .token.number,
 .token.boolean {
-  color: #B5CEA8 !important;
+  color: var(--code-number) !important;
 }
 
-/* Functions - VS Code Yellow */
+/* Functions/Methods */
 .token.function,
 .token.method {
-  color: #DCDCAA !important;
+  color: var(--code-function) !important;
 }
 
-/* Classes/Types - VS Code Teal */
+/* Classes/Types */
 .token.class-name,
 .token.maybe-class-name {
-  color: #4EC9B0 !important;
+  color: var(--code-type) !important;
 }
 
-/* Decorators/Annotations - VS Code Teal */
+/* Decorators/Annotations - match method color */
 .token.decorator,
 .token.annotation {
-  color: #4EC9B0 !important;
+  color: var(--code-decorator) !important;
 }
 
-/* Variables/Properties - VS Code Light Blue */
+.token.decorator * {
+  color: var(--code-decorator) !important;
+}
+
+/* Variables/Properties */
 .token.variable,
 .token.property {
-  color: #9CDCFE !important;
+  color: var(--code-variable) !important;
 }
 
-/* Constants - VS Code Blue/Purple */
+/* Constants/Symbols */
 .token.constant,
 .token.symbol {
-  color: #C586C0 !important;
+  color: var(--code-constant) !important;
 }
 
-/* Punctuation - VS Code Light Gray */
+/* Punctuation */
 .token.punctuation,
 .token.bracket,
 .token.brace,
 .token.parenthesis {
-  color: #D4D4D4 !important;
+  color: var(--code-fg) !important;
 }
 
-/* Tags (HTML/JSX) - VS Code Blue */
+/* Tags (HTML/JSX) */
 .token.tag {
-  color: #569CD6 !important;
+  color: var(--code-keyword) !important;
 }
 
-/* Attributes - VS Code Light Blue */
+/* Attributes */
 .token.attr-name {
-  color: #9CDCFE !important;
+  color: var(--code-variable) !important;
 }
 
-/* Regex - VS Code Orange */
+/* Regex */
 .token.regex {
-  color: #D16969 !important;
+  color: var(--code-regex) !important;
 }
 
-/* Important - VS Code Red */
+/* Important */
 .token.important {
-  color: #F44747 !important;
+  color: var(--code-error) !important;
   font-weight: bold !important;
 }
 
-/* Deleted - VS Code Red */
+/* Deleted */
 .token.deleted {
-  color: #F44747 !important;
+  color: var(--code-error) !important;
   background: rgba(244, 71, 71, 0.1) !important;
 }
 
-/* Inserted - VS Code Green */
+/* Inserted */
 .token.inserted {
-  color: #6A9955 !important;
+  color: var(--code-comment) !important;
   background: rgba(106, 153, 85, 0.12) !important;
 }
 
 /* Shell/Bash specific */
 .language-bash .token.function,
 .language-shell .token.function {
-  color: #DCDCAA !important;
+  color: var(--code-function) !important;
 }
 
 /* TypeScript/JavaScript specific */
 .language-typescript .token.keyword,
 .language-javascript .token.keyword {
-  color: #569CD6 !important;
+  color: var(--code-keyword) !important;
 }
 
 /* JSON specific */
 .language-json .token.property {
-  color: #9CDCFE !important;
+  color: var(--code-variable) !important;
 }
 
 /* Line numbers */
@@ -240,7 +263,7 @@ code[class*="language-"] {
   left: 0;
   width: 3em;
   letter-spacing: -1px;
-  border-right: 1px solid #30363D;
+  border-right: 1px solid var(--code-border);
   user-select: none;
 }
 
@@ -251,7 +274,7 @@ code[class*="language-"] {
 
 .line-numbers-rows > span:before {
   content: counter(linenumber);
-  color: #858585;
+  color: var(--code-line-number);
   display: block;
   padding-right: 0.8em;
   text-align: right;

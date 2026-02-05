@@ -132,97 +132,96 @@ export class AppModule {}`;
           >
             <div className="relative">
               {/* Code window */}
-              <div className="rounded-xl overflow-hidden bg-[#1E1E1E] shadow-code transform perspective-1000 rotate-x-2 rotate-y--2 hover:rotate-x-0 hover:rotate-y-0 transition-transform duration-500">
+              <div
+                className="rounded-xl overflow-hidden shadow-code transform perspective-1000 rotate-x-2 rotate-y--2 hover:rotate-x-0 hover:rotate-y-0 transition-transform duration-500"
+                style={{ background: 'var(--code-bg)' }}
+              >
                 {/* Window header */}
-                <div className="flex items-center gap-2 px-4 py-3 bg-[#2D2D2D] border-b border-[#3E3E3E]">
+                <div
+                  className="flex items-center gap-2 px-4 py-3 border-b"
+                  style={{ background: 'var(--code-surface)', borderColor: 'var(--code-border)' }}
+                >
                   <div className="flex gap-1.5">
                     <div className="w-3 h-3 rounded-full bg-[#FF5F56]" />
                     <div className="w-3 h-3 rounded-full bg-[#FFBD2E]" />
                     <div className="w-3 h-3 rounded-full bg-[#27C93F]" />
                   </div>
                   <div className="flex-1 text-center">
-                    <span className="text-xs text-gray-500 font-mono">app.controller.ts</span>
+                    <span className="text-xs font-mono text-[color:var(--code-muted)]">app.controller.ts</span>
                   </div>
                 </div>
                 
                 {/* Code content */}
-                <div className="p-4 overflow-x-auto">
-                  <pre className="text-sm leading-relaxed">
+                  <div className="p-4 overflow-x-auto" style={{ background: 'var(--code-bg)' }}>
+                    <pre className="text-sm leading-relaxed">
                     <code className="language-typescript">
                       {codeExample.split('\n').map((line, i) => (
                         <div key={i} className="table-row">
-                          <span className="table-cell text-right pr-4 text-gray-600 select-none w-8">
+                          <span className="table-cell text-right pr-4 text-[color:var(--code-line-number)] select-none w-8">
                             {i + 1}
                           </span>
                           <span className="table-cell">
                             {line.includes('import') && (
                               <>
-                                <span className="text-[#569CD6]">import</span>
-                                <span className="text-[#D4D4D4]">{' { '}</span>
-                                <span className="text-[#9CDCFE]">{line.match(/\{([^}]+)\}/)?.[1]}</span>
-                                <span className="text-[#D4D4D4]">{'} '}</span>
-                                <span className="text-[#569CD6]">from</span>
-                                <span className="text-[#CE9178]">{line.match(/from ['"]([^'"]+)['"]/)?.[0].replace('from ', '')}</span>
-                                <span className="text-[#D4D4D4]">;</span>
+                                <span className="text-[color:var(--code-keyword)]">import</span>
+                                <span className="text-[color:var(--code-fg)]">{' { '}</span>
+                                <span className="text-[color:var(--code-variable)]">{line.match(/\{([^}]+)\}/)?.[1]}</span>
+                                <span className="text-[color:var(--code-fg)]">{'} '}</span>
+                                <span className="text-[color:var(--code-keyword)]">from</span>
+                                <span className="text-[color:var(--code-string)]">{line.match(/from ['"]([^'"]+)['"]/)?.[0].replace('from ', '')}</span>
+                                <span className="text-[color:var(--code-fg)]">;</span>
                               </>
                             )}
                             {line.includes('@Controller') && (
                               <>
-                                <span className="text-[#4EC9B0]">@Controller</span>
-                                <span className="text-[#D4D4D4]">(</span>
-                                <span className="text-[#CE9178]">&apos;api&apos;</span>
-                                <span className="text-[#D4D4D4]">)</span>
+                                <span className="text-[color:var(--code-decorator)]">@Controller(&apos;api&apos;)</span>
                               </>
                             )}
                             {line.includes('export class') && !line.includes('@') && (
                               <>
-                                <span className="text-[#569CD6]">export class</span>
-                                <span className="text-[#DCDCAA]"> {line.match(/class\s+(\w+)/)?.[1]} </span>
-                                <span className="text-[#D4D4D4]">{'{'}</span>
+                                <span className="text-[color:var(--code-keyword)]">export class</span>
+                                <span className="text-[color:var(--code-type)]"> {line.match(/class\s+(\w+)/)?.[1]} </span>
+                                <span className="text-[color:var(--code-fg)]">{'{'}</span>
                               </>
                             )}
                             {line.includes('@Get') && (
                               <>
-                                <span className="text-[#4EC9B0]">  @Get</span>
-                                <span className="text-[#D4D4D4]">(</span>
-                                <span className="text-[#CE9178]">&apos;hello&apos;</span>
-                                <span className="text-[#D4D4D4]">)</span>
+                                <span className="text-[color:var(--code-decorator)]">  @Get(&apos;hello&apos;)</span>
                               </>
                             )}
                             {line.includes('getHello') && (
                               <>
-                                <span className="text-[#DCDCAA]">  getHello</span>
-                                <span className="text-[#D4D4D4]">(): </span>
-                                <span className="text-[#4EC9B0]">string</span>
-                                <span className="text-[#D4D4D4]"> {'{'}</span>
+                                <span className="text-[color:var(--code-function)]">  getHello</span>
+                                <span className="text-[color:var(--code-fg)]">(): </span>
+                                <span className="text-[color:var(--code-type)]">string</span>
+                                <span className="text-[color:var(--code-fg)]"> {'{'}</span>
                               </>
                             )}
                             {line.includes('return') && (
                               <>
-                                <span className="text-[#569CD6]">    return</span>
-                                <span className="text-[#CE9178]"> &apos;Hello World!&apos;</span>
-                                <span className="text-[#D4D4D4]">;</span>
+                                <span className="text-[color:var(--code-keyword)]">    return</span>
+                                <span className="text-[color:var(--code-string)]"> &apos;Hello World!&apos;</span>
+                                <span className="text-[color:var(--code-fg)]">;</span>
                               </>
                             )}
                             {line.trim() === '}' && (
-                              <span className="text-[#D4D4D4]">{line}</span>
+                              <span className="text-[color:var(--code-fg)]">{line}</span>
                             )}
                             {line.includes('@Module') && (
                               <>
-                                <span className="text-[#4EC9B0]">@Module</span>
-                                <span className="text-[#D4D4D4]">({'{'}</span>
+                                <span className="text-[color:var(--code-decorator)]">@Module({'{'}</span>
                               </>
                             )}
                             {line.includes('controllers:') && (
                               <>
-                                <span className="text-[#9CDCFE]">  controllers</span>
-                                <span className="text-[#D4D4D4]">: [</span>
-                                <span className="text-[#DCDCAA]">AppController</span>
-                                <span className="text-[#D4D4D4]">],</span>
+                                <span className="text-[color:var(--code-variable)]">  controllers</span>
+                                <span className="text-[color:var(--code-fg)]">: [</span>
+                                <span className="text-[color:var(--code-type)]">AppController</span>
+                                <span className="text-[color:var(--code-fg)]">],</span>
                               </>
                             )}
                             {line.trim() === '})' && (
-                              <span className="text-[#D4D4D4]">{line}</span>
+                              <span className="text-[color:var(--code-fg)]">{line}</span>
                             )}
                           </span>
                         </div>

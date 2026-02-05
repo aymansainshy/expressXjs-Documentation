@@ -9,6 +9,24 @@ import 'prismjs/components/prism-json';
 import 'prismjs/components/prism-bash';
 import 'prismjs/components/prism-docker';
 
+const DECORATOR_PATTERN = /@[\w$]+(?:\((?:[^()\r\n]|\([^()\r\n]*\))*\))?/;
+
+const overrideDecoratorToken = (language: string) => {
+  const grammar = Prism.languages[language];
+  if (!grammar) return;
+
+  // Force the entire decorator call to be a single token so it shares one color.
+  (grammar as Prism.Grammar & { decorator?: Prism.GrammarToken }).decorator = {
+    pattern: DECORATOR_PATTERN,
+    greedy: true,
+  };
+};
+
+overrideDecoratorToken('typescript');
+overrideDecoratorToken('javascript');
+overrideDecoratorToken('tsx');
+overrideDecoratorToken('jsx');
+
 interface CodeBlockProps {
   code: string;
   language: string;
@@ -23,7 +41,7 @@ export function CodeBlock({ code, language, filename }: CodeBlockProps) {
     if (codeRef.current) {
       Prism.highlightElement(codeRef.current);
     }
-  }, [code]);
+  }, [code, language]);
 
   const handleCopy = async () => {
     try {
@@ -37,13 +55,13 @@ export function CodeBlock({ code, language, filename }: CodeBlockProps) {
 
   return (
     <div
-      className="my-6 rounded-xl overflow-hidden border border-[#3C3C3C] shadow-xl group"
-      style={{ background: '#1E1E1E' }}
+      className="my-6 rounded-xl overflow-hidden border shadow-xl group"
+      style={{ background: 'var(--code-bg)', borderColor: 'var(--code-border)' }}
     >
       {/* Header */}
       <div
-        className="flex items-center justify-between px-4 py-3 border-b border-[#3C3C3C]"
-        style={{ background: '#252526' }}
+        className="flex items-center justify-between px-4 py-3 border-b"
+        style={{ background: 'var(--code-surface)', borderColor: 'var(--code-border)' }}
       >
         <div className="flex items-center gap-3">
           <div className="flex gap-1.5">
@@ -52,12 +70,14 @@ export function CodeBlock({ code, language, filename }: CodeBlockProps) {
             <div className="w-3 h-3 rounded-full bg-[#27C93F]" />
           </div>
           {filename && (
-            <span className="text-sm text-[#9DA5B4] font-mono ml-2">{filename}</span>
+            <span className="text-sm font-mono ml-2 text-[color:var(--code-muted)]">
+              {filename}
+            </span>
           )}
         </div>
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs text-[#9DA5B4] hover:text-white hover:bg-[#3C3C3C] transition-all duration-200 opacity-0 group-hover:opacity-100"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs text-[color:var(--code-muted)] hover:text-white hover:bg-[color:var(--code-border)] transition-all duration-200 opacity-0 group-hover:opacity-100"
           aria-label="Copy code"
         >
           {isCopied ? (
@@ -75,8 +95,8 @@ export function CodeBlock({ code, language, filename }: CodeBlockProps) {
       </div>
 
       {/* Code content - Always dark background with colorful syntax */}
-      <div className="relative overflow-x-auto" style={{ background: '#1E1E1E' }}>
-        <pre className="p-5 text-sm leading-relaxed m-0" style={{ background: '#1E1E1E' }}>
+      <div className="relative overflow-x-auto" style={{ background: 'var(--code-bg)' }}>
+        <pre className="p-5 text-sm leading-relaxed m-0" style={{ background: 'var(--code-bg)' }}>
           <code
             ref={codeRef}
             className={`language-${language}`}

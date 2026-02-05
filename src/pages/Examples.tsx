@@ -1,5 +1,6 @@
 import { Github, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { CodeBlock } from '@/components/ui-custom/CodeBlock';
 
 const examples = [
   {
@@ -158,13 +159,7 @@ export function Examples() {
                     ))}
                   </div>
 
-                  <div className="rounded-lg overflow-hidden" style={{ background: '#1E1E1E' }}>
-                    <pre className="p-4 text-xs overflow-x-auto">
-                      <code style={{ color: '#D4D4D4', fontFamily: "'Fira Code', monospace" }}>
-                        {example.code}
-                      </code>
-                    </pre>
-                  </div>
+                  <CodeBlock code={example.code} language="typescript" />
                 </div>
                 
                 <div className="px-6 py-4 border-t border-border bg-muted/30">

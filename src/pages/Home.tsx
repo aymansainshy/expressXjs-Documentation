@@ -64,6 +64,133 @@ export class AppController {
 })
 export class AppModule {}`;
 
+const decoratorColor = 'text-[color:var(--code-decorator)]';
+const keywordColor = 'text-[color:var(--code-keyword)]';
+const stringColor = 'text-[color:var(--code-string)]';
+const typeColor = 'text-[color:var(--code-type)]';
+const functionColor = 'text-[color:var(--code-function)]';
+const propertyColor = 'text-[color:var(--code-variable)]';
+const baseColor = 'text-[color:var(--code-fg)]';
+
+const renderCodeLine = (line: string) => {
+  const indent = line.match(/^\s*/)?.[0] ?? '';
+  const content = line.trim();
+
+  if (content.startsWith('import ')) {
+    const match = content.match(/^import\s+\{([^}]+)\}\s+from\s+['"]([^'"]+)['"];/);
+    if (match) {
+      const imports = match[1].trim();
+      const moduleName = match[2];
+      return (
+        <>
+          <span className={`${baseColor} whitespace-pre`}>{indent}</span>
+          <span className={keywordColor}>import</span>
+          <span className={baseColor}>{' { '}</span>
+          <span className={propertyColor}>{imports}</span>
+          <span className={baseColor}>{' } '}</span>
+          <span className={keywordColor}>from</span>
+          <span className={stringColor}>{` '${moduleName}'`}</span>
+          <span className={baseColor}>;</span>
+        </>
+      );
+    }
+  }
+
+  if (content.startsWith('@Controller')) {
+    return (
+      <>
+        <span className={`${baseColor} whitespace-pre`}>{indent}</span>
+        <span className={decoratorColor}>@Controller('api')</span>
+      </>
+    );
+  }
+
+  if (content.startsWith('@Get')) {
+    return (
+      <>
+        <span className={`${baseColor} whitespace-pre`}>{indent}</span>
+        <span className={decoratorColor}>@Get('hello')</span>
+      </>
+    );
+  }
+
+  if (content.startsWith('@Module')) {
+    return (
+      <>
+        <span className={`${baseColor} whitespace-pre`}>{indent}</span>
+        <span className={decoratorColor}>@Module({'{'}</span>
+      </>
+    );
+  }
+
+  if (content.startsWith('export class')) {
+    const match = content.match(/^export class (\w+)\s*(\{.*)?$/);
+    if (match) {
+      const className = match[1];
+      const trailing = match[2] ?? '';
+      return (
+        <>
+          <span className={`${baseColor} whitespace-pre`}>{indent}</span>
+          <span className={keywordColor}>export</span>
+          <span className={keywordColor}>{' class'}</span>
+        <span className={typeColor}>{` ${className}`}</span>
+          <span className={baseColor}>{` ${trailing}`}</span>
+        </>
+      );
+    }
+  }
+
+  if (content.startsWith('getHello')) {
+    return (
+      <>
+        <span className={`${baseColor} whitespace-pre`}>{indent}</span>
+        <span className={functionColor}>getHello</span>
+        <span className={baseColor}>(): </span>
+        <span className={typeColor}>string</span>
+        <span className={baseColor}> {'{'}</span>
+      </>
+    );
+  }
+
+  if (content.startsWith('return ')) {
+    return (
+      <>
+        <span className={`${baseColor} whitespace-pre`}>{indent}</span>
+        <span className={keywordColor}>return</span>
+        <span className={stringColor}>{` 'Hello World!'`}</span>
+        <span className={baseColor}>;</span>
+      </>
+    );
+  }
+
+  if (content.startsWith('controllers:')) {
+    return (
+      <>
+        <span className={`${baseColor} whitespace-pre`}>{indent}</span>
+        <span className={propertyColor}>controllers</span>
+        <span className={baseColor}>: [</span>
+        <span className={functionColor}>AppController</span>
+        <span className={baseColor}>],</span>
+      </>
+    );
+  }
+
+  if (content === '})' || content === '}') {
+    return (
+      <>
+        <span className={`${baseColor} whitespace-pre`}>{indent}</span>
+        <span className={baseColor}>{content}</span>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <span className={`${baseColor} whitespace-pre`}>{line}</span>
+    </>
+  );
+};
+
 export function Home() {
   return (
     <div className="min-h-screen">
@@ -147,33 +274,33 @@ export function Home() {
             </div>
 
             {/* Right content - Code window */}
-            <div className="relative w-full max-w-xl lg:max-w-none mx-auto lg:ml-auto motion-safe:animate-scale-in" style={{ animationDelay: '300ms' }}>
+            <div className="relative w-full max-w-3xl lg:max-w-none mx-auto lg:ml-auto motion-safe:animate-scale-in" style={{ animationDelay: '300ms' }}>
               <div className="relative">
                 {/* Code window */}
-                <div className="rounded-xl overflow-hidden shadow-2xl bg-[#1E1E1E] transform perspective-1000 rotate-x-2 rotate-y--2 hover:rotate-x-0 hover:rotate-y-0 transition-transform duration-500">
+                <div className="rounded-xl overflow-hidden shadow-2xl transform perspective-1000 rotate-x-2 rotate-y--2 hover:rotate-x-0 hover:rotate-y-0 transition-transform duration-500" style={{ background: 'var(--code-bg)' }}>
                   {/* Window header */}
-                  <div className="flex items-center gap-2 px-3 sm:px-4 py-3 bg-[#2D2D2D] border-b border-[#3E3E3E]">
+                  <div className="flex items-center gap-2 px-3 sm:px-4 py-3 border-b" style={{ background: 'var(--code-surface)', borderColor: 'var(--code-border)' }}>
                     <div className="flex gap-1.5">
                       <div className="w-3 h-3 rounded-full bg-[#FF5F56]" />
                       <div className="w-3 h-3 rounded-full bg-[#FFBD2E]" />
                       <div className="w-3 h-3 rounded-full bg-[#27C93F]" />
                     </div>
                     <div className="flex-1 text-center">
-                      <span className="text-xs text-gray-500 font-mono">app.controller.ts</span>
+                      <span className="text-xs font-mono text-[color:var(--code-muted)]">app.controller.ts</span>
                     </div>
                   </div>
                   
                   {/* Code content */}
-                  <div className="p-3 sm:p-4 overflow-x-auto" style={{ background: '#1E1E1E' }}>
-                    <pre className="text-xs sm:text-sm leading-relaxed m-0">
-                      <code className="language-typescript" style={{ color: '#D4D4D4', fontFamily: "'Fira Code', monospace" }}>
+                  <div className="p-5 sm:p-6 overflow-x-auto" style={{ background: 'var(--code-bg)' }}>
+                    <pre className="text-lg sm:text-xl leading-relaxed m-0">
+                      <code className="language-typescript" style={{ fontFamily: "'Fira Code', monospace" }}>
                         {codeExample.split('\n').map((line, i) => (
                           <div key={i} className="table-row">
-                            <span className="hidden sm:table-cell text-right pr-4 text-gray-600 select-none w-8 tabular-nums">
+                            <span className="hidden sm:table-cell text-right pr-4 text-[color:var(--code-line-number)] select-none w-8 tabular-nums">
                               {i + 1}
                             </span>
                             <span className="table-cell whitespace-pre">
-                              {line}
+                              {renderCodeLine(line)}
                             </span>
                           </div>
                         ))}
@@ -246,7 +373,7 @@ export function Home() {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="w-full sm:w-auto border-white/30 text-white hover:bg-white/10 gap-2"
+                    className="w-full sm:w-auto border-white/40 text-white bg-white/10 hover:bg-white/20 hover:text-white gap-2"
                   >
                     View Examples
                   </Button>
