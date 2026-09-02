@@ -23,6 +23,7 @@ npm run preview
 
 - `src/pages/docs/GettingStarted.tsx` — introduction, installation, quick start, and project structure
 - `src/pages/docs/CoreConcepts.tsx` — application lifecycle, routing, and dependency injection
+- `src/pages/docs/AutoConfiguration.tsx` — auto-configuration, discovery cache, file tracking, and production mapping
 - `src/pages/docs/RuntimeGuide.tsx` — request/response, pipeline, errors, discovery, and configuration
 - `src/pages/docs/CLI.tsx` — CLI overview, command reference, and generators
 - `src/pages/docs/Operations.tsx` — complete application and production deployment

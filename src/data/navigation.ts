@@ -34,6 +34,7 @@ export const docsNavigation: NavItem[] = [
     path: '/docs/core',
     items: [
       { id: 'application', title: 'Application & lifecycle', path: '/docs/core/application' },
+      { id: 'auto-configuration-cache', title: 'Auto-configuration & cache', path: '/docs/core/auto-configuration-cache' },
       { id: 'controllers-routing', title: 'Controllers & routing', path: '/docs/core/controllers-routing' },
       { id: 'dependency-injection', title: 'Dependency injection', path: '/docs/core/dependency-injection' },
       { id: 'request-response', title: 'Request & response', path: '/docs/core/request-response' },

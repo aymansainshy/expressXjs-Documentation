@@ -16,7 +16,7 @@ export function ApplicationLifecycle() {
       title="Application & lifecycle"
       description="The application class coordinates startup while ExpressXFactory creates and configures the underlying Express application."
       previous={{ title: 'Project structure', href: '/docs/getting-started/project-structure' }}
-      next={{ title: 'Controllers & routing', href: '/docs/core/controllers-routing' }}
+      next={{ title: 'Auto-configuration & cache', href: '/docs/core/auto-configuration-cache' }}
     >
       <Section id="application-decorator" title="The application class">
         <Signature>@Application(options?: Options): ClassDecorator</Signature>
@@ -118,7 +118,7 @@ export function ControllersRouting() {
     <Article
       title="Controllers & routing"
       description="Controllers are singleton classes whose method metadata becomes an Express router during application bootstrap."
-      previous={{ title: 'Application & lifecycle', href: '/docs/core/application' }}
+      previous={{ title: 'Auto-configuration & cache', href: '/docs/core/auto-configuration-cache' }}
       next={{ title: 'Dependency injection', href: '/docs/core/dependency-injection' }}
     >
       <Section id="controller" title="Controllers">

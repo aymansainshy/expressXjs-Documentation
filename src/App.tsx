@@ -26,6 +26,7 @@ import {
   RequestPipeline,
   RequestResponseGuide,
 } from '@/pages/docs/RuntimeGuide';
+import { AutoConfigurationCache } from '@/pages/docs/AutoConfiguration';
 import { CLICommands, CLIOverview, Generators } from '@/pages/docs/CLI';
 import { BuildDeployment, CompleteApplication } from '@/pages/docs/Operations';
 import {
@@ -90,6 +91,7 @@ function App() {
 
           {/* Core */}
           <Route path="core/application" element={<ApplicationLifecycle />} />
+          <Route path="core/auto-configuration-cache" element={<AutoConfigurationCache />} />
           <Route path="core/controllers-routing" element={<ControllersRouting />} />
           <Route path="core/dependency-injection" element={<DependencyInjection />} />
           <Route path="core/request-response" element={<RequestResponseGuide />} />

@@ -340,7 +340,7 @@ export function ProjectStructure() {
 @Controller
 @UseGlobalInterceptor
 @UseGlobalExceptionHandler`} />
-        <p>Files containing only services, route guards, route middleware, or route interceptors are not independently discovered. They must be imported by a discovered file or another reachable import. Development scans <InlineCode>*.ts</InlineCode>; production scans <InlineCode>*.js</InlineCode>. Test, declaration, build, cache, dependency, and Git paths are excluded.</p>
+        <p>Files containing only services, route guards, route middleware, or route interceptors are not independently discovered. They must be imported by a discovered file or another reachable import. Development scans <InlineCode>*.ts</InlineCode>; production scans <InlineCode>*.js</InlineCode>. Development test/declaration files and dependency, cache, Git, and nested build paths are excluded; keep tests out of compiled production output.</p>
       </Section>
 
       <Section id="organizing-code" title="Organizing larger applications">

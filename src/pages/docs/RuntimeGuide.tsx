@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import {
   Article,
   BulletList,
@@ -332,6 +333,7 @@ export function DiscoveryConfiguration() {
 
       <Section id="cache" title="Discovery cache">
         <p>The cache records a version, environment, scan count, generation time, and each discovered file's relative path, modification time, and size. Core loads a matching-version cache without rescanning.</p>
+        <p>For the complete auto-configuration flow, development change tracking, transitive imports, production path mapping, and recovery rules, see <Link className="text-brand-primary hover:underline" to="/docs/core/auto-configuration-cache">Auto-configuration & cache</Link>.</p>
         <CodeBlock filename="src/.expressx/cache.json" language="json" code={`{
   "version": "1.0.0",
   "decoratorFiles": [
