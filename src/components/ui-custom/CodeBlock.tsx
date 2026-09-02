@@ -16,7 +16,7 @@ const overrideDecoratorToken = (language: string) => {
   if (!grammar) return;
 
   // Force the entire decorator call to be a single token so it shares one color.
-  (grammar as Prism.Grammar & { decorator?: Prism.GrammarToken }).decorator = {
+  (grammar as Prism.Grammar & { decorator?: { pattern: RegExp; greedy: boolean } }).decorator = {
     pattern: DECORATOR_PATTERN,
     greedy: true,
   };

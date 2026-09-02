@@ -9,7 +9,7 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-function SidebarItem({ item, depth = 0 }: { item: NavItem; depth?: number }) {
+function SidebarItem({ item, depth = 0, onNavigate }: { item: NavItem; depth?: number; onNavigate: () => void }) {
   const location = useLocation();
   const [isExpanded, setIsExpanded] = useState(() => {
     // Auto-expand if current path matches this item or its children
@@ -22,12 +22,13 @@ function SidebarItem({ item, depth = 0 }: { item: NavItem; depth?: number }) {
   const hasChildren = item.items && item.items.length > 0;
   const isActive = location.pathname === item.path;
   const isChildActive = item.items?.some(child => location.pathname === child.path);
+  const showChildren = Boolean(isExpanded || isChildActive);
 
   return (
     <div className="select-none">
       {hasChildren ? (
         <button
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={() => setIsExpanded(!showChildren)}
           className={`w-full flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
             isActive || isChildActive
               ? 'text-brand-primary font-medium bg-brand-primary/5'
@@ -36,7 +37,7 @@ function SidebarItem({ item, depth = 0 }: { item: NavItem; depth?: number }) {
           style={{ paddingLeft: `${depth * 12 + 12}px` }}
         >
           <span className="flex-shrink-0">
-            {isExpanded ? (
+            {showChildren ? (
               <ChevronDown className="w-4 h-4" />
             ) : (
               <ChevronRight className="w-4 h-4" />
@@ -47,12 +48,7 @@ function SidebarItem({ item, depth = 0 }: { item: NavItem; depth?: number }) {
       ) : (
         <Link
           to={item.path}
-          onClick={() => {
-            // Close sidebar on mobile when clicking a link
-            if (window.innerWidth < 1024) {
-              // This will be handled by parent
-            }
-          }}
+          onClick={onNavigate}
           className={`flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
             isActive
               ? 'text-brand-primary font-medium bg-brand-primary/5'
@@ -64,12 +60,13 @@ function SidebarItem({ item, depth = 0 }: { item: NavItem; depth?: number }) {
         </Link>
       )}
 
-      {hasChildren && isExpanded && (
+      {hasChildren && showChildren && (
         <div className="mt-1 space-y-0.5 animate-in slide-in-from-top-1 duration-200">
           {item.items!.map((child) => (
             <Link
               key={child.id}
               to={child.path}
+              onClick={onNavigate}
               className={`flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                 location.pathname === child.path
                   ? 'text-brand-primary font-medium bg-brand-primary/5'
@@ -113,21 +110,23 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </span>
               </div>
               {docsNavigation.map((item) => (
-                <SidebarItem key={item.id} item={item} />
+                <SidebarItem key={item.id} item={item} onNavigate={onClose} />
               ))}
             </div>
 
             {/* Bottom links */}
             <div className="pt-4 border-t border-border space-y-1">
               <Link
-                to="/docs/migration"
+                to="/docs/reference/limitations"
+                onClick={onClose}
                 className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-all duration-200"
               >
                 <Book className="w-4 h-4" />
-                Migration Guide
+                Limitations
               </Link>
               <Link
-                to="/docs/api-reference"
+                to="/docs/reference/api"
+                onClick={onClose}
                 className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-all duration-200"
               >
                 <Sparkles className="w-4 h-4" />
