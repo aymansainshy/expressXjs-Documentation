@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Search, Github, Moon, Sun, Menu, X } from 'lucide-react';
 import {
@@ -9,7 +9,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { mainNav } from '@/data/navigation';
+import { docsNavigation, mainNav } from '@/data/navigation';
 import { useTheme } from '@/context/ThemeContext';
 
 interface HeaderProps {
@@ -25,6 +25,16 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
+  const searchableDocs = useMemo(
+    () => docsNavigation.flatMap((item) => item.items ?? [item]),
+    [],
+  );
+  const searchResults = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return searchableDocs.slice(0, 7);
+    return searchableDocs.filter((item) => item.title.toLowerCase().includes(query));
+  }, [searchQuery, searchableDocs]);
+
   // Track scroll position for header background
   useEffect(() => {
     const handleScroll = () => {
@@ -35,6 +45,17 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
     handleScroll(); // Check initial position
     
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
   }, []);
 
   return (
@@ -78,7 +99,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
             </div>
             <span className={`font-semibold text-lg hidden sm:block transition-colors ${
               isScrolled ? 'text-foreground' : 'text-foreground'
-            }`}>Framework</span>
+            }`}>ExpressX.js</span>
           </Link>
         </div>
 
@@ -146,17 +167,30 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                   )}
                 </div>
               </DialogHeader>
-              <div className="p-4">
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  Start typing to search documentation...
-                </p>
+              <div className="max-h-[360px] overflow-y-auto p-2">
+                {searchResults.length > 0 ? searchResults.map((item) => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => {
+                      setIsSearchOpen(false);
+                      setSearchQuery('');
+                    }}
+                    className="flex items-center justify-between rounded-lg px-3 py-3 text-sm transition-colors hover:bg-muted"
+                  >
+                    <span className="font-medium">{item.title}</span>
+                    <span className="text-xs text-muted-foreground">Open →</span>
+                  </Link>
+                )) : (
+                  <p className="py-8 text-center text-sm text-muted-foreground">No documentation page matches “{searchQuery}”.</p>
+                )}
               </div>
             </DialogContent>
           </Dialog>
 
           {/* GitHub */}
           <a
-            href="https://github.com/framework/framework"
+            href="https://github.com/aymansainshy/expressXjs"
             target="_blank"
             rel="noopener noreferrer"
             className={`p-2 rounded-lg transition-all duration-200 ${
