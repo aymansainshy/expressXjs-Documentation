@@ -48,16 +48,16 @@ export function DocsLayout() {
         showMenuButton={true}
       />
       
-      <div className="flex max-w-[1600px] mx-auto pt-16">
+      <div className="mx-auto flex max-w-[1600px] pt-16">
         <Sidebar
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
         />
 
-        <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-          <div className="flex gap-8">
+        <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-12">
+          <div className="flex min-w-0 gap-8">
             {/* Main content */}
-            <div className="flex-1 max-w-3xl">
+            <div className="w-full min-w-0 flex-1 max-w-3xl">
               <Outlet />
             </div>
             

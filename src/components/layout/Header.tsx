@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, Github, Moon, Sun, Menu, X } from 'lucide-react';
+import { Search, Github, Moon, Sun, Menu, PanelLeft, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -68,16 +68,16 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
           : 'bg-transparent'
       }`}
     >
-      <div className="h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between max-w-[1600px] mx-auto">
+      <div className="mx-auto flex h-full max-w-[1600px] items-center justify-between gap-2 px-3 sm:px-6 lg:px-8">
         {/* Left section */}
-        <div className="flex items-center gap-4">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-4">
           {showMenuButton && (
             <button
               onClick={onMenuClick}
-              className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-              aria-label="Toggle menu"
+              className="-ml-1 rounded-lg p-2 transition-colors hover:bg-black/5 dark:hover:bg-white/5 sm:-ml-2 lg:hidden"
+              aria-label="Open documentation navigation"
             >
-              <Menu className="w-5 h-5" />
+              <PanelLeft className="h-5 w-5" />
             </button>
           )}
 
@@ -126,12 +126,12 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
         </nav>
 
         {/* Right section */}
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           {/* Search */}
           <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
             <DialogTrigger asChild>
               <button
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                className={`flex items-center gap-2 rounded-lg p-2 transition-all duration-200 sm:px-3 ${
                   isScrolled
                     ? 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
                     : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
@@ -176,10 +176,10 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                       setIsSearchOpen(false);
                       setSearchQuery('');
                     }}
-                    className="flex items-center justify-between rounded-lg px-3 py-3 text-sm transition-colors hover:bg-muted"
+                    className="flex min-w-0 items-center justify-between gap-3 rounded-lg px-3 py-3 text-sm transition-colors hover:bg-muted"
                   >
-                    <span className="font-medium">{item.title}</span>
-                    <span className="text-xs text-muted-foreground">Open →</span>
+                    <span className="min-w-0 truncate font-medium">{item.title}</span>
+                    <span className="shrink-0 text-xs text-muted-foreground">Open →</span>
                   </Link>
                 )) : (
                   <p className="py-8 text-center text-sm text-muted-foreground">No documentation page matches “{searchQuery}”.</p>
@@ -193,7 +193,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
             href="https://github.com/aymansainshy/expressXjs"
             target="_blank"
             rel="noopener noreferrer"
-            className={`p-2 rounded-lg transition-all duration-200 ${
+            className={`hidden rounded-lg p-2 transition-all duration-200 sm:inline-flex ${
               isScrolled
                 ? 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
                 : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
@@ -228,7 +228,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 ? 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
                 : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
             }`}
-            aria-label="Toggle mobile menu"
+            aria-label={isMobileMenuOpen ? 'Close site navigation' : 'Open site navigation'}
           >
             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -237,7 +237,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
 
       {/* Mobile Navigation */}
       {isMobileMenuOpen && (
-        <div className={`lg:hidden absolute top-16 left-0 right-0 border-b shadow-lg transition-colors ${
+        <div className={`absolute left-0 right-0 top-16 max-h-[calc(100vh-4rem)] overflow-y-auto border-b shadow-lg transition-colors lg:hidden ${
           isDark ? 'bg-[#0D1117] border-[#30363D]' : 'bg-white border-gray-200'
         }`}>
           <nav className="flex flex-col p-4 space-y-1">

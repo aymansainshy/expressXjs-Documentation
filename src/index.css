@@ -99,6 +99,7 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    min-width: 320px;
   }
   
   code, pre {
@@ -126,6 +127,17 @@ code[class*="language-"] {
   font-family: 'Fira Code', 'SF Mono', Monaco, monospace !important;
   font-size: 14px !important;
   line-height: 1.7 !important;
+}
+
+@media (max-width: 639px) {
+  .code-block pre,
+  pre[class*="language-"] {
+    padding: 1rem !important;
+  }
+
+  code[class*="language-"] {
+    font-size: 12.5px !important;
+  }
 }
 
 /* Comments */

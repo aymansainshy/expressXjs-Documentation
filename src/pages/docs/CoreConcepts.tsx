@@ -290,13 +290,13 @@ const TOKEN = Symbol('request-limit');
 ExpressXContainer.register(TOKEN, { useValue: 100 });
 
 const limit = ExpressXContainer.resolve<number>(TOKEN);`} />
-        <Callout type="warning" title="Route pipeline construction">
-          Route guards, route middleware, and route interceptors are currently instantiated with <InlineCode>new Class()</InlineCode>, not resolved from the DI container. Constructor injection therefore works for controllers, services, the application, global interceptors, and the global exception handler—but not for route-level pipeline classes. Keep route-level classes constructor-free or resolve dependencies explicitly until this implementation changes.
+        <Callout type="tip" title="Route pipeline components use DI in 0.0.6">
+          Guards, route middleware, and route interceptors are resolved with <InlineCode>ExpressXContainer.resolve()</InlineCode> for every matched request. Their constructors can inject services and tokens just like controllers. Decorate each pipeline class with <InlineCode>@Injectable()</InlineCode>, <InlineCode>@Singleton()</InlineCode>, or <InlineCode>@Scoped()</InlineCode>; its registered lifecycle determines whether the container reuses the instance or creates one for the resolution.
         </Callout>
       </Section>
 
       <Section id="di-errors" title="Resolution failures">
-        <p>DI errors occur during application bootstrap when the router resolves controller singletons, or when another registered singleton is first requested. Check that decorated metadata is enabled, the dependency is registered/imported, the token passed to <InlineCode>@Inject</InlineCode> exactly matches the registration token, and circular imports are removed.</p>
+        <p>DI errors can occur during bootstrap when ExpressX resolves the application, controllers, and global components, or at request time when it resolves a route guard, middleware, or interceptor. Check that decorated metadata is enabled, the pipeline class and its dependencies are imported, every dependency is registered, the token passed to <InlineCode>@Inject</InlineCode> exactly matches its registration token, and circular imports are removed.</p>
       </Section>
     </Article>
   );

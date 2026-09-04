@@ -41,10 +41,10 @@ export function Callout({ type = 'info', title, children }: CalloutProps) {
   const style = styles[type];
 
   return (
-    <div className={`callout ${style.container} my-6`}>
+    <div className={`callout ${style.container} my-6 min-w-0 rounded-xl border-l-4 p-4 sm:p-5`}>
       <div className="flex items-start gap-3">
         <Icon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${style.icon}`} />
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           {title && (
             <p className={`font-semibold text-sm mb-1 ${style.title}`}>
               {title}
