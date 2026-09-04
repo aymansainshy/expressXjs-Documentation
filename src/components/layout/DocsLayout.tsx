@@ -16,6 +16,12 @@ export function DocsLayout() {
   const [tocItems, setTocItems] = useState<TocItem[]>([]);
   const location = useLocation();
 
+  useEffect(() => {
+    if (!location.hash) {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  }, [location.pathname, location.hash]);
+
   // Extract headings from the page content when route changes
   useEffect(() => {
     const extractHeadings = () => {

@@ -56,7 +56,7 @@ export function Home() {
           <div>
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-brand-primary/20 bg-brand-primary/10 px-3 py-1.5 text-sm font-medium text-brand-primary">
               <span className="h-2 w-2 rounded-full bg-brand-primary" />
-              Core & CLI 0.0.5
+              Core & CLI 0.0.6
             </div>
             <h1 className="max-w-xl text-5xl font-semibold tracking-tight sm:text-6xl lg:text-7xl">
               Structured TypeScript. <span className="gradient-text">Express at heart.</span>
@@ -118,7 +118,7 @@ export function Home() {
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Link to="/docs/introduction"><Button size="lg">Read the documentation</Button></Link>
-            <Link to="/docs/reference/limitations"><Button size="lg" variant="outline">Review current limitations</Button></Link>
+            <Link to="/docs/core/architecture"><Button size="lg" variant="outline">Explore the architecture</Button></Link>
           </div>
         </div>
       </section>

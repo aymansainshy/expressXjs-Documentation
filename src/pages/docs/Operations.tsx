@@ -30,7 +30,7 @@ export function CompleteApplication() {
 │   └── user.service.ts
 ├── application.ts
 └── index.ts`} />
-        <p>Install and configure the project as shown in Installation. This example uses route middleware for validation because the exported validator decorator is not connected to the 0.0.5 router.</p>
+        <p>Install and configure the project as shown in Installation. This example uses route middleware for validation because 0.0.6 intentionally leaves validation to application code and schema/middleware libraries.</p>
       </Section>
 
       <Section id="dto-service" title="DTO and service">
@@ -152,12 +152,11 @@ export class AppExceptionHandler extends ExceptionHandler {
         <CodeBlock filename="src/users/user.controller.ts" language="typescript" code={`import {
   Body,
   Controller,
-  Ctx,
   GET,
-  HttpContext,
   HttpErrorResponse,
   HttpResponse,
   Inject,
+  Param,
   POST,
   UseGuards,
   UseMiddlewares,
@@ -179,8 +178,8 @@ export class UserController {
   }
 
   @GET('/:id')
-  public findOne(@Ctx() ctx: HttpContext) {
-    const user = this.users.findOne(ctx.req.params.id);
+  public findOne(@Param('id') id: string) {
+    const user = this.users.findOne(id);
     return user
       ? HttpResponse.ok(user)
       : new HttpErrorResponse(404, { message: 'User not found' });
@@ -296,7 +295,7 @@ NODE_ENV=production npm start`} />
 PORT=3000
 API_KEY=replace-me
 DATABASE_URL=postgresql://...`} />
-        <p><InlineCode>NODE_ENV</InlineCode> is available to Express and application code, but scanner mode is selected by <InlineCode>EXPRESSX_RUNTIME</InlineCode>. Leave <InlineCode>EXPRESSX_RUNTIME</InlineCode> unset in a normal compiled production process.</p>
+        <p><InlineCode>NODE_ENV=development</InlineCode> selects TypeScript scanner mode; <InlineCode>EXPRESSX_RUNTIME=ts</InlineCode> can also select it explicitly. Use <InlineCode>NODE_ENV=production</InlineCode> and leave <InlineCode>EXPRESSX_RUNTIME</InlineCode> unset in a normal compiled production process.</p>
       </Section>
 
       <Section id="docker" title="Docker example">
@@ -319,7 +318,7 @@ USER node
 EXPOSE 3000
 CMD ["node", "dist/index.js"]`} />
         <Callout type="info" title="Choose and pin your own Node image">
-          The image above is an example operational choice, not a framework support claim. Version 0.0.5 does not publish a Node engines range. Match the image to the version your application tests and supports.
+          The image above is an example operational choice, not a framework support claim. Version 0.0.6 does not publish a Node engines range. Match the image to the version your application tests and supports.
         </Callout>
       </Section>
 

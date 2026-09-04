@@ -15,7 +15,7 @@ export function AutoConfigurationCache() {
     <Article
       title="Auto-configuration & cache"
       description="The .expressx/cache.json file is the persistent discovery index that lets ExpressX.js find and import decorated application components without a manual controller or provider registry."
-      previous={{ title: 'Application & lifecycle', href: '/docs/core/application' }}
+      previous={{ title: 'Architecture', href: '/docs/core/architecture' }}
       next={{ title: 'Controllers & routing', href: '/docs/core/controllers-routing' }}
     >
       <Section id="core-idea" title="The core idea">
@@ -62,11 +62,11 @@ export function AutoConfigurationCache() {
   "environment": "development"
 }`} />
         <ReferenceTable rows={[
-          { name: 'version', signature: 'string', description: 'Cache schema version checked by Core before loading.', notes: 'A mismatch invalidates the cache and triggers regeneration.' },
-          { name: 'decoratorFiles', signature: 'CachedFileMetadata[]', description: 'Relative paths selected for import, with modification time and byte size.', notes: 'The optional hash field exists in the type but is not populated by the current scanner.' },
+          { name: 'version', signature: 'string', description: 'Cache schema version checked by Core before loading.', notes: 'A mismatch regenerates in development and fails startup in production.' },
+          { name: 'decoratorFiles', signature: 'CachedFileMetadata[]', description: 'Project-relative paths selected for import, with modification time and byte size.', notes: 'Paths are rejected if they escape the project. The optional hash field exists but is not currently populated.' },
           { name: 'totalScanned', signature: 'number', description: 'Number of candidate files seen by the last full scan.', notes: 'The development watcher does not continuously update this count.' },
           { name: 'generatedAt', signature: 'ISO date string', description: 'Time the cache was generated or last updated by the watcher.', notes: 'Useful for diagnostics; not used as an invalidation key.' },
-          { name: 'environment', signature: 'development | production', description: 'Describes whether entries point to TypeScript source or compiled JavaScript.', notes: 'Core selects the cache location from EXPRESSX_RUNTIME, not from this value.' },
+          { name: 'environment', signature: 'development | production', description: 'Describes whether entries point to TypeScript source or compiled JavaScript.', notes: 'The value must match the selected runtime mode or the manifest is rejected.' },
         ]} />
       </Section>
 
@@ -76,7 +76,8 @@ export function AutoConfigurationCache() {
 @Controller('/users')
 @UseGlobalInterceptor()
 @UseGlobalExceptionHandler()`} />
-        <p>In development, a regular-expression text check looks for those names with an <InlineCode>@</InlineCode> prefix. In production, it also recognizes compiled decorator references without the prefix. The full scan considers <InlineCode>*.ts</InlineCode> in development and <InlineCode>*.js</InlineCode> in production.</p>
+        <p>Version 0.0.6 uses the TypeScript compiler AST instead of a decorator-name regular expression. Canonical decorator names are recognized directly in TypeScript; named aliases, namespace imports, import-equals syntax, and CommonJS <InlineCode>require()</InlineCode> forms are traced to <InlineCode>@expressxjs/core</InlineCode> or one of its subpaths. The production parser recognizes emitted decorator calls without confusing names inside comments or strings.</p>
+        <p>The full scan considers <InlineCode>.ts</InlineCode>, <InlineCode>.tsx</InlineCode>, <InlineCode>.mts</InlineCode>, and <InlineCode>.cts</InlineCode> in development, plus <InlineCode>.js</InlineCode>, <InlineCode>.jsx</InlineCode>, <InlineCode>.mjs</InlineCode>, and <InlineCode>.cjs</InlineCode> in production.</p>
         <Subsection id="transitive-imports" title="Services and route pipeline files are transitive">
           <p>
             A file containing only <InlineCode>@Injectable()</InlineCode>, a guard, route middleware, or route interceptor is not independently added to the discovery cache. It becomes available because a cached controller or application imports it through the normal JavaScript module graph.
@@ -88,10 +89,7 @@ export function AutoConfigurationCache() {
           <p>If a service or pipeline class is never imported by a discovered file, ExpressX.js has no reason to evaluate it and it will not be registered or used.</p>
         </Subsection>
         <Subsection id="scan-exclusions" title="Excluded paths">
-          <p>Development scans ignore dependencies, <InlineCode>.expressx</InlineCode>, Git data, nested build/dist folders, declaration files, and files matching <InlineCode>*.spec.ts</InlineCode> or <InlineCode>*.test.ts</InlineCode>. The development watcher uses the same practical directory exclusions and watches TypeScript files only.</p>
-          <Callout type="warning" title="Keep tests out of production output">
-            The production glob selects JavaScript, but the scanner's test/declaration ignore patterns are currently written for TypeScript extensions. Exclude tests from TypeScript production compilation so decorated <InlineCode>*.spec.js</InlineCode> or <InlineCode>*.test.js</InlineCode> files cannot become production scan candidates during cache recovery.
-          </Callout>
+          <p>Both scan modes ignore dependencies, <InlineCode>.expressx</InlineCode>, Git data, nested build/dist folders, declaration files, and files matching <InlineCode>*.spec.*</InlineCode> or <InlineCode>*.test.*</InlineCode>. The development watcher applies the same TypeScript-variant and test/declaration rules.</p>
         </Subsection>
       </Section>
 
@@ -113,12 +111,12 @@ export function AutoConfigurationCache() {
       </Section>
 
       <Section id="cold-start" title="First run, missing cache, and recovery">
-        <p>When Core cannot load a cache—because it is missing, unreadable, or has the wrong schema version—it performs a full scan, saves a new cache, and imports the new entries. During <InlineCode>expressx dev</InlineCode>, the CLI's cache watcher notices when Core creates that file and reloads it into the parent watcher state.</p>
+        <p>In development, when Core cannot load a cache—because it is missing, unreadable, has the wrong schema version, uses the wrong environment, or contains an invalid path or field—it performs a full scan, saves a new cache, and imports the new entries. During <InlineCode>expressx dev</InlineCode>, the CLI's cache watcher notices when Core creates that file and reloads it into the parent watcher state.</p>
         <CodeBlock language="bash" code={`# Safe development recovery: stop the server, remove the generated file,
 # then let ExpressX rebuild it on the next start.
 rm src/.expressx/cache.json
 npm run dev`} />
-        <p>The cache is recoverable because the source files are authoritative. Most generated projects ignore <InlineCode>src/.expressx/</InlineCode> in Git.</p>
+        <p>The cache is recoverable because the source files are authoritative. Version 0.0.6 validates the complete manifest before use and writes through a temporary file followed by an atomic rename, reducing the chance of a partially written JSON file. Generated projects ignore <InlineCode>src/.expressx/</InlineCode> in Git.</p>
       </Section>
 
       <Section id="stopped-server-limitation" title="Files added while the dev server is stopped">
@@ -136,7 +134,7 @@ npm run dev`} />
       </Section>
 
       <Section id="production-cache" title="Production cache">
-        <p>The build preparation command performs a fresh TypeScript scan, saves the development index, and creates production metadata by replacing the configured source prefix with the output prefix and changing terminal <InlineCode>.ts</InlineCode> extensions to <InlineCode>.js</InlineCode>.</p>
+        <p>The build preparation command performs a fresh TypeScript scan, saves the development index, and creates production metadata below the selected output root. It maps <InlineCode>.ts</InlineCode>/<InlineCode>.tsx</InlineCode> to <InlineCode>.js</InlineCode>, <InlineCode>.mts</InlineCode> to <InlineCode>.mjs</InlineCode>, and <InlineCode>.cts</InlineCode> to <InlineCode>.cjs</InlineCode>.</p>
         <CodeBlock language="bash" code={`# expressx creates both cache files; tsc creates JavaScript
 npx expressx build && npx tsc
 
@@ -150,7 +148,8 @@ dist/users/user.controller.js`} />
           <li>Keep <InlineCode>expressx.outDir</InlineCode> equal to <InlineCode>compilerOptions.outDir</InlineCode>.</li>
           <li>Run production from the project directory containing <InlineCode>package.json</InlineCode>; paths are resolved from <InlineCode>process.cwd()</InlineCode>.</li>
           <li>Regenerate the cache for every build. Production startup loads a valid-version cache without comparing file timestamps or sizes.</li>
-          <li>The current implementation can fall back to a full JavaScript scan when the production cache is missing, but deployment should not depend on that slower recovery path.</li>
+          <li>Production startup is strict in 0.0.6: a missing or invalid <InlineCode>outDir/.expressx/cache.json</InlineCode> stops bootstrap instead of scanning compiled output.</li>
+          <li><InlineCode>expressx build --output build</InlineCode> now writes <InlineCode>build/.expressx/cache.json</InlineCode>; compile TypeScript into that same directory.</li>
         </BulletList>
       </Section>
 
