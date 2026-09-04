@@ -324,21 +324,43 @@ export function ErrorHandling() {
   return (
     <Article
       title="Error handling"
-      description="Expected errors can be returned as HttpErrorResponse values; thrown route-pipeline failures can be normalized by one application exception handler, with built-in fallbacks for unmatched routes and Express errors."
+      description="Return HttpErrorResponse locally, throw into the application ExceptionHandler, or deliberately delegate to the Express error pipeline with next(error)."
       previous={{ title: 'Request pipeline', href: '/docs/core/request-pipeline' }}
       next={{ title: 'Discovery & configuration', href: '/docs/core/discovery-configuration' }}
     >
-      <Section id="expected-errors" title="Expected HTTP errors">
-        <p>Return <InlineCode>HttpErrorResponse</InlineCode> when the handler can express an expected failure directly. It avoids throwing and still uses the common response serializer.</p>
+      <Section id="choose-error-path" title="Choose an error path">
+        <ReferenceTable rows={[
+          { name: 'Return HttpErrorResponse', signature: 'local handling', description: 'Represent an expected failure directly in the controller, including from a catch block.', notes: 'Remains a normal value, passes outward through interceptors, and uses the standard response serializer.' },
+          { name: 'Throw Error', signature: 'central handling (recommended)', description: 'Reject the route pipeline and let the application ExceptionHandler map the failure once.', notes: 'Entered interceptors unwind first; the handler must return HttpErrorResponse.' },
+          { name: 'next(error)', signature: 'Express delegation', description: 'Hand control directly to the mounted Express error pipeline.', notes: 'Bypasses the application ExceptionHandler and standard response serializer; reserve for intentional Express integration.' },
+        ]} />
+        <p>These approaches coexist. Choose per failure based on where the HTTP policy belongs and whether interceptors should observe or transform the result.</p>
+      </Section>
+
+      <Section id="expected-errors" title="Option 1: return HttpErrorResponse locally">
+        <p>Return <InlineCode>HttpErrorResponse</InlineCode> when the controller already knows the expected HTTP status and public response body. This works both for an ordinary conditional branch and inside <InlineCode>try/catch</InlineCode>. It avoids throwing and still uses the standard response serializer.</p>
         <CodeBlock language="typescript" code={`return record
   ? HttpResponse.ok(record)
   : new HttpErrorResponse(404, {
       statusCode: 404,
       message: 'Record not found',
     });`} />
+        <CodeBlock filename="Return from catch" language="typescript" code={`try {
+  const user = await this.users.create(input);
+  return HttpResponse.created(user);
+} catch (error) {
+  console.error('User creation failed', error);
+  return new HttpErrorResponse(422, {
+    statusCode: 422,
+    message: 'Unable to create user',
+  });
+}`} />
+        <Callout type="info" title="Returned errors stay inside the normal response flow">
+          A returned <InlineCode>HttpErrorResponse</InlineCode> is an ordinary pipeline value. Route and global interceptors can observe or replace it, and its own <InlineCode>statusCode</InlineCode> takes precedence unless an interceptor replaces it with another result.
+        </Callout>
       </Section>
 
-      <Section id="recommended-thrown-errors" title="Recommended: throw, then normalize centrally">
+      <Section id="recommended-thrown-errors" title="Option 2: throw, then normalize centrally">
         <p>For operational or unexpected failures, throw an <InlineCode>Error</InlineCode> and let the application <InlineCode>ExceptionHandler</InlineCode> convert it to one consistent <InlineCode>HttpErrorResponse</InlineCode>. A controller-level <InlineCode>try/catch</InlineCode> is useful when it adds route-specific context, performs cleanup, or translates a lower-level failure into a safe application message.</p>
         <CodeBlock filename="src/users/user.controller.ts" language="typescript" code={`import { Body, Controller, HttpResponse, Inject, POST } from '@expressxjs/core';
 import { CreateUserDto } from './user.dto';
@@ -408,6 +430,47 @@ export class AppExceptionHandler extends ExceptionHandler {
         </Callout>
       </Section>
 
+      <Section id="next-error" title="Option 3: delegate with next(error)">
+        <p>Controllers can inject Express's <InlineCode>NextFn</InlineCode> with <InlineCode>@Next()</InlineCode> and call <InlineCode>next(error)</InlineCode>. ExpressX route middleware receives the same callback directly. This is available when code intentionally needs the mounted Express error pipeline.</p>
+        <CodeBlock filename="src/jobs/job.controller.ts" language="typescript" code={`import {
+  Body,
+  Controller,
+  HttpResponse,
+  Inject,
+  Next,
+  NextFn,
+  POST,
+} from '@expressxjs/core';
+import { CreateJobDto, Job } from './job.dto';
+import { JobService } from './job.service';
+
+@Controller('/jobs')
+export class JobController {
+  public constructor(
+    @Inject(JobService) private readonly jobs: JobService,
+  ) {}
+
+  @POST('/')
+  public async create(
+    @Body() input: CreateJobDto,
+    @Next() next: NextFn,
+  ): Promise<HttpResponse<Job> | void> {
+    try {
+      return HttpResponse.created(await this.jobs.create(input));
+    } catch (error) {
+      return next(error);
+    }
+  }
+}`} />
+        <Callout type="warning" title="Not recommended for normal controller errors">
+          <InlineCode>next(error)</InlineCode> bypasses the application <InlineCode>ExceptionHandler</InlineCode> and the standard ExpressX response serializer. The framework's Express fallback handles it directly: a regular <InlineCode>Error</InlineCode> becomes a generic 500 response using the full <InlineCode>{`{ statusCode, error }`}</InlineCode> wrapper. Because the callback does not reject the interceptor chain, interceptors cannot transform that fallback response. Prefer throwing for normal ExpressX application errors; use <InlineCode>next(error)</InlineCode> when bypassing the application policy is deliberate or an Express integration requires it.
+        </Callout>
+        <p>If that deliberate fallback needs a custom status and body, pass an <InlineCode>HttpErrorResponse</InlineCode> to <InlineCode>next()</InlineCode>. The fallback preserves it, but still serializes the complete wrapper rather than only the inner <InlineCode>error</InlineCode> body.</p>
+        <CodeBlock language="typescript" code={`next(new HttpErrorResponse(429, {
+  message: 'Too many requests',
+}));`} />
+      </Section>
+
       <Section id="not-found" title="Not found handling">
         <p>After the generated router, the factory mounts a catch-all middleware that returns status 404 without invoking the application exception handler. The JSON response uses the full <InlineCode>HttpErrorResponse</InlineCode> shape:</p>
         <CodeBlock language="json" code={`{
@@ -429,7 +492,7 @@ export class AppExceptionHandler extends ExceptionHandler {
           <li>After the interceptor chain rejects, the global exception handler converts the failure to <InlineCode>HttpErrorResponse</InlineCode>. That resolved value is serialized directly and does not re-enter the interceptors.</li>
           <li>If no application handler exists, unresolved errors enter the Express fallback and return status 500 as <InlineCode>{`{ "statusCode": 500, "error": { "message": "Internal Server Error" } }`}</InlineCode>.</li>
           <li>If the custom exception handler throws or returns a value other than <InlineCode>HttpErrorResponse</InlineCode>, the same framework fallback handles that failure.</li>
-          <li>Calling injected <InlineCode>next(error)</InlineCode> enters the Express error pipeline directly and does not invoke the application exception handler.</li>
+          <li>Calling injected <InlineCode>next(error)</InlineCode> enters the Express error pipeline directly. It does not invoke the application exception handler or the standard ExpressX serializer, and interceptors cannot transform the fallback response.</li>
         </BulletList>
       </Section>
 
