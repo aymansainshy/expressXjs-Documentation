@@ -77,7 +77,7 @@ public download(@Ctx() ctx: HttpContext): void {
         <p>A controller can return a framework response, return a plain JSON-compatible value, or send the response directly through Express. Expected failures can also be returned as <InlineCode>HttpErrorResponse</InlineCode> values.</p>
         <ReferenceTable rows={[
           { name: 'HttpResponse', signature: 'HttpResponse<T>', description: 'Returns a body with an explicit success status.', notes: 'Use a static factory, constructor, or the chainable status()/body() methods.' },
-          { name: 'Plain value', signature: 'object | array | primitive | null', description: 'Serializes the returned value directly as JSON.', notes: 'Uses @StatusCode when present; otherwise status 200.' },
+          { name: 'Plain value', signature: 'object | array | primitive | null', description: 'Serializes the returned value directly as JSON.', notes: 'The final post-interceptor value uses @StatusCode when present; otherwise status 200.' },
           { name: 'Direct Express response', signature: 'void', description: 'Sends through ctx.res.status(...).json(...) or another Express method.', notes: 'Once headers are sent, ExpressX skips automatic serialization.' },
           { name: 'HttpErrorResponse', signature: 'HttpErrorResponse', description: 'Returns an expected error body with an explicit error status.', notes: 'May be returned without throwing.' },
         ]} />
@@ -166,12 +166,15 @@ public findOne(@Ctx() ctx: HttpContext) {
         <BulletList>
           <li><InlineCode>HttpResponse.statusCode</InlineCode> wins over <InlineCode>@StatusCode</InlineCode>.</li>
           <li><InlineCode>HttpErrorResponse.statusCode</InlineCode> wins over <InlineCode>@StatusCode</InlineCode>.</li>
-          <li>A plain object, array, primitive, or <InlineCode>null</InlineCode> uses <InlineCode>@StatusCode</InlineCode> when present and status 200 otherwise.</li>
+          <li>A plain object, array, primitive, or <InlineCode>null</InlineCode> uses <InlineCode>@StatusCode</InlineCode> when present and status 200 otherwise, whether it came directly from the controller or from an interceptor transformation.</li>
           <li>A direct <InlineCode>ctx.res</InlineCode> write sets <InlineCode>headersSent</InlineCode>, so the automatic serializer does not send a second response.</li>
           <li>A directly returned <InlineCode>HttpErrorResponse</InlineCode> remains a normal pipeline value, so an interceptor may deliberately transform it before serialization.</li>
           <li>The built-in not-found and Express error fallbacks serialize the complete <InlineCode>{`{ statusCode, error }`}</InlineCode> wrapper; controller-returned and application-handler responses serialize only their <InlineCode>error</InlineCode> payload.</li>
           <li>Redirect behavior is not implemented, and route handlers are JSON-oriented by default.</li>
         </BulletList>
+        <Callout type="info" title="Status selection happens after interceptors">
+          Given <InlineCode>@StatusCode(209)</InlineCode>, ExpressX uses status 209 if the controller returns a plain value. It also uses 209 if the controller originally returned an <InlineCode>HttpResponse</InlineCode> or <InlineCode>HttpErrorResponse</InlineCode> but an interceptor replaced it with a plain value. An interceptor that returns either response class keeps the status stored on that returned object instead.
+        </Callout>
       </Section>
     </Article>
   );
@@ -335,6 +338,37 @@ export function ErrorHandling() {
     });`} />
       </Section>
 
+      <Section id="recommended-thrown-errors" title="Recommended: throw, then normalize centrally">
+        <p>For operational or unexpected failures, throw an <InlineCode>Error</InlineCode> and let the application <InlineCode>ExceptionHandler</InlineCode> convert it to one consistent <InlineCode>HttpErrorResponse</InlineCode>. A controller-level <InlineCode>try/catch</InlineCode> is useful when it adds route-specific context, performs cleanup, or translates a lower-level failure into a safe application message.</p>
+        <CodeBlock filename="src/users/user.controller.ts" language="typescript" code={`import { Body, Controller, HttpResponse, Inject, POST } from '@expressxjs/core';
+import { CreateUserDto } from './user.dto';
+import { UserService } from './user.service';
+
+@Controller('/users')
+export class UserController {
+  public constructor(
+    @Inject(UserService) private readonly users: UserService,
+  ) {}
+
+  @POST('/')
+  public async create(@Body() input: CreateUserDto) {
+    try {
+      const user = await this.users.create(input);
+      return HttpResponse.created(user);
+    } catch (error) {
+      // Keep the original failure and stack in server-side logs.
+      console.error('User creation failed', error);
+
+      // The registered ExceptionHandler receives this error.
+      throw new Error('Unable to create user');
+    }
+  }
+}`} />
+        <Callout type="tip" title="Use try/catch only when it adds value">
+          If the controller has no context to add, let the original error propagate without catching it; ExpressX still sends it to the application <InlineCode>ExceptionHandler</InlineCode>. Use custom <InlineCode>Error</InlineCode> subclasses or properties when the handler needs granular status codes or public messages. Log complete errors and stack traces on the server. Include a stack trace in the HTTP response only in a controlled development environment, because production stacks can expose paths, dependencies, and internal implementation details.
+        </Callout>
+      </Section>
+
       <Section id="global-handler" title="Global exception handler">
         <Signature>@UseGlobalExceptionHandler(): ClassDecorator</Signature>
         <p>The decorated class must extend <InlineCode>ExceptionHandler</InlineCode>. It is registered as a singleton and handles failures thrown by controllers, guards, route middleware, and route/global interceptors inside the generated router. Its <InlineCode>catch</InlineCode> method receives <InlineCode>unknown</InlineCode> and must return <InlineCode>HttpErrorResponse</InlineCode> or <InlineCode>Promise&lt;HttpErrorResponse&gt;</InlineCode>.</p>
@@ -345,10 +379,11 @@ export function ErrorHandling() {
 } from '@expressxjs/core';
 
 type StatusError = Error & { status?: number };
+type ErrorBody = { statusCode: number; message: string; stack?: string };
 
 @UseGlobalExceptionHandler()
 export class AppExceptionHandler extends ExceptionHandler {
-  public catch(error: unknown): HttpErrorResponse {
+  public catch(error: unknown): HttpErrorResponse<ErrorBody> {
     const candidate = error as Partial<StatusError>;
     const message = error instanceof Error ? error.message : 'Unexpected error';
 
@@ -359,10 +394,15 @@ export class AppExceptionHandler extends ExceptionHandler {
           ? 401
           : 500;
 
-    return new HttpErrorResponse(statusCode, { statusCode, message });
+    const body: ErrorBody = { statusCode, message };
+    if (process.env.NODE_ENV === 'development' && error instanceof Error) {
+      body.stack = error.stack;
+    }
+
+    return new HttpErrorResponse(statusCode, body);
   }
 }`} />
-        <p>The <InlineCode>status</InlineCode> check preserves a numeric status attached to an application error. Unmatched routes and errors passed directly to Express with <InlineCode>next(error)</InlineCode> bypass this handler and use the built-in fallbacks described below.</p>
+        <p>The <InlineCode>status</InlineCode> check preserves a numeric status attached to an application error, while the body can provide a custom public message and a development-only stack. Thrown controller errors reach this handler after entered interceptors unwind. Unmatched routes and errors passed directly to Express with <InlineCode>next(error)</InlineCode> bypass this handler and use the built-in fallbacks described below.</p>
         <Callout type="warning" title="The return contract is enforced">
           Version 0.0.7 checks the handler result at runtime as well as in TypeScript. Returning a plain object, <InlineCode>undefined</InlineCode>, or any other value raises a <InlineCode>TypeError</InlineCode> and delegates to the framework fallback instead of guessing an HTTP status.
         </Callout>

@@ -42,7 +42,7 @@ export function APIReference() {
           { name: '@PUT(path)', signature: 'MethodDecorator', description: 'Registers a PUT route.', notes: 'Uppercase export; path required.' },
           { name: '@PATCH(path)', signature: 'MethodDecorator', description: 'Registers a PATCH route.', notes: 'Uppercase export; path required.' },
           { name: '@DELETE(path)', signature: 'MethodDecorator', description: 'Registers a DELETE route.', notes: 'Uppercase export; path required.' },
-          { name: '@StatusCode(code)', signature: 'method decorator', description: 'Sets fallback status for a plain handler result.', notes: 'HttpResponse/HttpErrorResponse status wins.' },
+          { name: '@StatusCode(code)', signature: 'method decorator', description: 'Sets the fallback status for the final plain result after interceptors.', notes: 'Applies to controller or interceptor-produced plain values; HttpResponse/HttpErrorResponse status wins.' },
           { name: 'RouteDefinition', signature: '{ path; method; handlerName }', description: 'Metadata record written by route decorators.', notes: 'Primarily framework/tooling infrastructure.' },
           { name: 'AppRouter.getRouter()', signature: 'Router', description: 'Builds an Express Router from the static controller registry.', notes: 'Publicly exported framework infrastructure.' },
           { name: 'ControllerRegistry', signature: 'static controllers / add()', description: 'Process-global array of decorated controller constructors.', notes: 'Duplicate constructor references are ignored; state is not reset between app factories.' },
@@ -77,7 +77,7 @@ export function APIReference() {
 
       <Section id="response-api" title="Responses and errors">
         <ReferenceTable rows={[
-          { name: 'Plain controller result', signature: 'any', description: 'Serializes an object, array, primitive, or null directly as JSON.', notes: 'Uses @StatusCode when present; otherwise status 200.' },
+          { name: 'Final plain result', signature: 'any', description: 'Serializes an object, array, primitive, or null directly as JSON.', notes: 'After interceptors finish, uses @StatusCode when present; otherwise status 200.' },
           { name: 'Direct ctx.res write', signature: 'void', description: 'Sends a response with the original Express response object.', notes: 'Automatic serialization is skipped after headers are sent.' },
           { name: 'new HttpResponse(statusCode, data?)', signature: 'HttpResponse<T>', description: 'Structured success response serialized as JSON.', notes: 'statusCode defaults to 200.' },
           { name: 'HttpResponse.ok(data)', signature: 'HttpResponse<T>', description: 'Creates status 200.', notes: 'Static convenience.' },
@@ -161,6 +161,7 @@ const issues = [
   ['Middleware order is surprising', 'Guards and middleware are combined and sorted by ascending priority. Classes in one decorator call keep their written order; guards sort before middleware when both types have the same priority.'],
   ['Controller does not run behind middleware', 'Every ExpressX route middleware must call next() to continue. A middleware that omits next() must send the response itself or the request remains open.'],
   ['Controller does not run behind an interceptor', 'Call handler.handle() to continue downstream and return its result or a transformed result. Omitting handle() intentionally short-circuits the chain.'],
+  ['@StatusCode appears to be ignored', 'The final result controls status selection. HttpResponse and HttpErrorResponse use their own statusCode; @StatusCode applies only when the post-interceptor result is a plain value.'],
   ['handler.getData is not a function', 'Version 0.0.7 removed Handler.getData(). Await handler.handle() and transform the returned value directly.'],
   ['Global exception handler returns a generic 500', 'Return an actual HttpErrorResponse instance. Version 0.0.7 rejects plain objects, undefined, and other handler results at runtime.'],
   ['Global exception handler does not receive an error', 'Unmatched routes and errors sent with next(error) bypass the application handler. The framework-owned 404 and Express error fallbacks handle those paths.'],

@@ -181,12 +181,14 @@ export class UserController {
 @Controller('/jobs')
 export class JobController {
   @POST('/')
-  @StatusCode(202)
+  @StatusCode(209)
   public enqueue() {
     return { accepted: true };
   }
 }`} />
-        <p><InlineCode>@StatusCode</InlineCode> is the fallback for plain results. A returned <InlineCode>HttpResponse</InlineCode> or <InlineCode>HttpErrorResponse</InlineCode> takes precedence.</p>
+        <Callout type="info" title="StatusCode is the final plain-value fallback">
+          <InlineCode>@StatusCode(209)</InlineCode> is applied when the final value entering the response serializer is not an <InlineCode>HttpResponse</InlineCode> or <InlineCode>HttpErrorResponse</InlineCode>. This covers a plain value returned directly by the controller and a plain value produced when an interceptor replaces or unwraps the controller result. If the final value is an <InlineCode>HttpResponse</InlineCode> or <InlineCode>HttpErrorResponse</InlineCode>, that object's own <InlineCode>statusCode</InlineCode> takes precedence.
+        </Callout>
       </Section>
 
       <Section id="route-registration" title="Registration and duplicate behavior">
