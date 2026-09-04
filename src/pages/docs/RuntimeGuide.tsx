@@ -22,7 +22,7 @@ export function RequestResponseGuide() {
       <Section id="parameter-decorators" title="Parameter decorators">
         <ReferenceTable rows={[
           { name: '@Param(key)', signature: 'ParameterDecorator', description: 'Injects req.params[key].', notes: 'Public in 0.0.6; no coercion or validation is applied.' },
-          { name: '@Body()', signature: 'ParameterDecorator', description: 'Injects req.body.', notes: 'Register express.json() or another body parser in onInit().' },
+          { name: '@Body()', signature: 'ParameterDecorator', description: 'Injects req.body.', notes: 'Register useExpressJson() or another body parser in onInit().' },
           { name: '@Ctx()', signature: 'ParameterDecorator', description: 'Injects { req, res } as HttpContext.', notes: 'Use for headers, query, cookies, route params, or direct response access.' },
           { name: '@Next()', signature: 'ParameterDecorator', description: 'Injects Express next.', notes: 'Call next(error) to enter the mounted fallback error handler.' },
         ]} />
@@ -209,15 +209,16 @@ public privateRoute() {
       </Section>
 
       <Section id="route-middleware" title="Route middleware">
-        <Signature>{`abstract use(ctx: HttpContext): void | Promise<void>`}</Signature>
-        <p>ExpressX route middleware receives a context and continues when the method resolves. There is no <InlineCode>next</InlineCode> callback. Throw to stop the pipeline, or send a response directly and be aware that later pipeline code still runs unless it also checks <InlineCode>headersSent</InlineCode>.</p>
-        <CodeBlock language="typescript" code={`import { ExpressXMiddleware, HttpContext } from '@expressxjs/core';
+        <Signature>{`abstract use(ctx: HttpContext, next: NextFn): void | Promise<void>`}</Signature>
+        <p>ExpressX route middleware receives the exported Express <InlineCode>NextFn</InlineCode> callback type and must call <InlineCode>next()</InlineCode> to continue to the next priority-sorted pipeline step. It does not need to return the callback. Omitting <InlineCode>next()</InlineCode> stops all later guards, middleware, route interceptors, and the controller. A short-circuiting middleware should send its own response; otherwise the request remains open. Calling <InlineCode>next(error)</InlineCode> delegates to the mounted Express error pipeline, while throwing enters the configured ExpressX exception flow.</p>
+        <CodeBlock language="typescript" code={`import { ExpressXMiddleware, HttpContext, NextFn } from '@expressxjs/core';
 
 export class RequireName extends ExpressXMiddleware {
-  public use(ctx: HttpContext): void {
+  public use(ctx: HttpContext, next: NextFn): void {
     if (typeof ctx.req.body?.name !== 'string') {
       throw new Error('name must be a string');
     }
+    next();
   }
 }
 
@@ -306,7 +307,7 @@ Global interceptors: after`} />
           <li>Guards and middleware share one ascending-priority list. Their priorities order guards against guards, middleware against middleware, and guards against middleware.</li>
           <li>Route-interceptor priority is scoped only to route interceptors. They are sorted separately, then wrap the controller in ascending-priority order.</li>
           <li>No numeric priority can change the fixed group order shown above.</li>
-          <li>Same-priority and stacked-decorator ordering follows metadata insertion details; do not make business logic depend on it.</li>
+          <li>Classes in one decorator call keep their written order when they have the same priority. Guards still sort before middleware when both types have the same priority.</li>
           <li>Global interceptor order follows discovery/import registration order; keep them order-independent where possible.</li>
         </BulletList>
       </Section>

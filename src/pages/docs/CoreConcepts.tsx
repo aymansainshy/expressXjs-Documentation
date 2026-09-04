@@ -27,7 +27,6 @@ export function ApplicationLifecycle() {
   ExpressXApp,
   OnInitExpressXApp,
 } from '@expressxjs/core';
-import express from 'express';
 
 @Application()
 export class ApiApplication extends ExpressX {
@@ -36,8 +35,12 @@ export class ApiApplication extends ExpressX {
   }
 
   public async onInit(app: OnInitExpressXApp): Promise<void> {
-    app.use(express.json({ limit: '1mb' }));
-    app.use(requestIdMiddleware);
+    app
+      .useExpressJson({ limit: '1mb' })
+      .useHelmet()
+      .useUrlencoded({ extended: true })
+      .useCors({ origin: 'https://example.com' })
+      .use(requestIdMiddleware);
   }
 
   public postInit(app: ExpressXApp): void {
@@ -91,17 +94,20 @@ process.on('SIGTERM', () => {
       </Section>
 
       <Section id="express-middleware" title="Registering Express middleware">
-        <p><InlineCode>OnInitExpressXApp.use()</InlineCode> forwards a normal Express request handler to <InlineCode>app.use()</InlineCode>. Registration order is call order, and all of these handlers run before ExpressX routes.</p>
+        <p><InlineCode>OnInitExpressXApp</InlineCode> provides chainable <InlineCode>useExpressJson()</InlineCode>, <InlineCode>useHelmet()</InlineCode>, <InlineCode>useUrlencoded()</InlineCode>, and <InlineCode>useCors()</InlineCode> helpers. Each accepts its middleware's options object when configuration is needed. <InlineCode>use()</InlineCode> still forwards any normal Express request handler to <InlineCode>app.use()</InlineCode>. Registration order is call order, and all of these handlers run before ExpressX routes.</p>
         <CodeBlock language="typescript" code={`public async onInit(app: OnInitExpressXApp): Promise<void> {
   app
-    .use(express.json())
+    .useExpressJson({ limit: '1mb' })
+    .useHelmet()
+    .useUrlencoded({ extended: true })
+    .useCors({ origin: 'https://example.com' })
     .use((req, _res, next) => {
       console.log(req.method, req.originalUrl);
       next();
     });
 }`} />
         <Callout type="info" title="Global middleware versus route middleware">
-          Use <InlineCode>onInit</InlineCode> for ordinary Express middleware that follows the <InlineCode>(req, res, next)</InlineCode> contract. Use <InlineCode>@UseMiddlewares</InlineCode> for ExpressX route middleware classes whose <InlineCode>use</InlineCode> method receives <InlineCode>{'{ req, res }'}</InlineCode> and continues automatically after it returns.
+          Use <InlineCode>onInit</InlineCode> for ordinary Express middleware that follows the <InlineCode>(req, res, next)</InlineCode> contract. ExpressX route middleware registered with <InlineCode>@UseMiddlewares</InlineCode> receives <InlineCode>{'{ req, res }'}</InlineCode> plus the same exported <InlineCode>NextFn</InlineCode> callback type, which it must call to continue.
         </Callout>
       </Section>
 

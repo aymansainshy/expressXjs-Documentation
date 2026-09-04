@@ -194,7 +194,6 @@ cd my-api`} />
   ExpressXApp,
   OnInitExpressXApp,
 } from '@expressxjs/core';
-import express from 'express';
 
 @Application()
 export class MyApplication extends ExpressX {
@@ -203,7 +202,7 @@ export class MyApplication extends ExpressX {
   }
 
   public async onInit(app: OnInitExpressXApp): Promise<void> {
-    app.use(express.json());
+    app.useExpressJson().useUrlencoded({ extended: true });
   }
 
   public postInit(app: ExpressXApp): void {

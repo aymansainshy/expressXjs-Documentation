@@ -74,16 +74,17 @@ export class ApiKeyGuard extends Guard {
     return !expected || req.headers['x-api-key'] === expected;
   }
 }`} />
-        <CodeBlock filename="src/common/middlewares/validate-user.middleware.ts" language="typescript" code={`import { ExpressXMiddleware, HttpContext } from '@expressxjs/core';
+        <CodeBlock filename="src/common/middlewares/validate-user.middleware.ts" language="typescript" code={`import { ExpressXMiddleware, HttpContext, NextFn } from '@expressxjs/core';
 
 export class ValidateUserMiddleware extends ExpressXMiddleware {
-  public use({ req }: HttpContext): void {
+  public use({ req }: HttpContext, next: NextFn): void {
     if (typeof req.body?.name !== 'string' || req.body.name.trim() === '') {
       throw Object.assign(new Error('name is required'), { status: 400 });
     }
     if (typeof req.body?.email !== 'string' || !req.body.email.includes('@')) {
       throw Object.assign(new Error('valid email is required'), { status: 400 });
     }
+    next();
   }
 }`} />
       </Section>
@@ -201,14 +202,13 @@ export class UserController {
   ExpressXApp,
   OnInitExpressXApp,
 } from '@expressxjs/core';
-import express from 'express';
 
 @Application()
 export class ApiApplication extends ExpressX {
   public async preInit(): Promise<void> {}
 
   public async onInit(app: OnInitExpressXApp): Promise<void> {
-    app.use(express.json());
+    app.useExpressJson().useHelmet().useUrlencoded({ extended: true }).useCors();
   }
 
   public postInit(app: ExpressXApp): void {
