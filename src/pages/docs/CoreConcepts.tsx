@@ -161,10 +161,10 @@ export class UserController {
       <Section id="handler-results" title="Handler return values">
         <p>Handlers may be synchronous or asynchronous. The response layer always serializes the result with Express <InlineCode>res.json()</InlineCode>, unless the handler or pipeline already sent a response.</p>
         <BulletList>
-          <li><InlineCode>HttpResponse</InlineCode> supplies an explicit success status and body.</li>
+          <li><InlineCode>HttpResponse.ok(data)</InlineCode>, the constructor, and chainable <InlineCode>status().body()</InlineCode> all return an <InlineCode>HttpResponse</InlineCode> with an explicit success status and body.</li>
           <li><InlineCode>HttpErrorResponse</InlineCode> supplies an explicit error status and body even when returned rather than thrown.</li>
-          <li>A plain value uses <InlineCode>@StatusCode</InlineCode> if present, otherwise status 200.</li>
-          <li>If <InlineCode>ctx.res.headersSent</InlineCode> is already true, automatic serialization is skipped.</li>
+          <li>A plain object, array, primitive, or <InlineCode>null</InlineCode> uses <InlineCode>@StatusCode</InlineCode> if present, otherwise status 200.</li>
+          <li>A direct <InlineCode>ctx.res.status(...).json(...)</InlineCode> write sends through Express. Once <InlineCode>headersSent</InlineCode> is true, automatic serialization is skipped.</li>
         </BulletList>
       </Section>
 

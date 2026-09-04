@@ -73,6 +73,66 @@ public download(@Ctx() ctx: HttpContext): void {
 }`} />
       </Section>
 
+      <Section id="controller-response-styles" title="Controller response styles">
+        <p>A controller can return a framework response, return a plain JSON-compatible value, or send the response directly through Express. Expected failures can also be returned as <InlineCode>HttpErrorResponse</InlineCode> values.</p>
+        <ReferenceTable rows={[
+          { name: 'HttpResponse', signature: 'HttpResponse<T>', description: 'Returns a body with an explicit success status.', notes: 'Use a static factory, constructor, or the chainable status()/body() methods.' },
+          { name: 'Plain value', signature: 'object | array | primitive | null', description: 'Serializes the returned value directly as JSON.', notes: 'Uses @StatusCode when present; otherwise status 200.' },
+          { name: 'Direct Express response', signature: 'void', description: 'Sends through ctx.res.status(...).json(...) or another Express method.', notes: 'Once headers are sent, ExpressX skips automatic serialization.' },
+          { name: 'HttpErrorResponse', signature: 'HttpErrorResponse', description: 'Returns an expected error body with an explicit error status.', notes: 'May be returned without throwing.' },
+        ]} />
+        <CodeBlock filename="src/users.controller.ts" language="typescript" code={`import {
+  Controller,
+  Ctx,
+  GET,
+  HttpContext,
+  HttpResponse,
+  StatusCode,
+} from '@expressxjs/core';
+
+interface User {
+  id: string;
+  name: string;
+}
+
+@Controller('/users')
+export class UserController {
+  private readonly userList: User[] = [{ id: '1', name: 'Ada' }];
+
+  @GET('/factory')
+  public factoryResponse() {
+    return HttpResponse.ok(this.userList);
+  }
+
+  @GET('/builder')
+  public builderResponse() {
+    return new HttpResponse<User[]>()
+      .status(200)
+      .body(this.userList);
+  }
+
+  @GET('/plain')
+  @StatusCode(200)
+  public plainResponse() {
+    return {
+      message: 'Users retrieved successfully',
+      data: this.userList,
+    };
+  }
+
+  @GET('/direct')
+  public directResponse(@Ctx() ctx: HttpContext): void {
+    ctx.res.status(200).json({
+      message: 'Users retrieved successfully',
+      data: this.userList,
+    });
+  }
+}`} />
+        <Callout type="warning" title="Do not mix response styles on one path">
+          After writing through <InlineCode>ctx.res</InlineCode>, do not also return response data or attempt another write. Interceptors still unwind, but response transformations cannot replace a body whose headers were already sent. Prefer returned values when interceptors need to transform the response.
+        </Callout>
+      </Section>
+
       <Section id="http-response" title="HttpResponse">
         <Signature>new HttpResponse&lt;T&gt;(code = 200, data?: T)</Signature>
         <ReferenceTable rows={[
@@ -104,6 +164,8 @@ public findOne(@Ctx() ctx: HttpContext) {
         <BulletList>
           <li><InlineCode>HttpResponse.code</InlineCode> wins over <InlineCode>@StatusCode</InlineCode>.</li>
           <li><InlineCode>HttpErrorResponse.statusCode</InlineCode> wins over <InlineCode>@StatusCode</InlineCode>.</li>
+          <li>A plain object, array, primitive, or <InlineCode>null</InlineCode> uses <InlineCode>@StatusCode</InlineCode> when present and status 200 otherwise.</li>
+          <li>A direct <InlineCode>ctx.res</InlineCode> write sets <InlineCode>headersSent</InlineCode>, so the automatic serializer does not send a second response.</li>
           <li>A resolved exception may carry a separate error status through interceptors even if an interceptor converts the response object to a plain envelope.</li>
           <li>Redirect behavior is not implemented, and route handlers are JSON-oriented by default.</li>
         </BulletList>
@@ -181,7 +243,7 @@ export class AccountGuard extends Guard {
 
       <Section id="route-interceptors" title="Route interceptors">
         <Signature>{`abstract intercept(ctx: HttpContext, callHandler: Handler): Promise<any>`}</Signature>
-        <p>Call <InlineCode>callHandler.handle()</InlineCode> to run the rest of the chain. Use <InlineCode>getData(transform?)</InlineCode> as a convenience that awaits downstream data and optionally transforms it.</p>
+        <p>Call <InlineCode>callHandler.handle()</InlineCode> to run the rest of the chain. Await its result to add after-handler behavior or return a transformed response.</p>
         <CodeBlock language="typescript" code={`import {
   ExpressXInterceptor,
   Handler,
@@ -196,8 +258,8 @@ export class TimingInterceptor extends ExpressXInterceptor {
     return result;
   }
 }`} />
-        <Callout type="danger" title="Always return the downstream value">
-          If an interceptor calls <InlineCode>handle()</InlineCode> and then returns <InlineCode>undefined</InlineCode>, the runtime interprets that as “continue” and dispatches again. This can execute downstream handlers twice. Return the result, a transformed result, or a deliberate final response value.
+        <Callout type="info" title="Continuation is explicit">
+          Calling <InlineCode>handle()</InlineCode> is the only way to continue to the next interceptor or controller. Return its result or a transformed result. An interceptor that does not call <InlineCode>handle()</InlineCode> deliberately short-circuits the chain.
         </Callout>
       </Section>
 
@@ -232,9 +294,17 @@ export class EnvelopeInterceptor extends ExpressXInterceptor {
 @UseMiddlewares(AuditMiddleware, 20)
 @UseInterceptors(TimingInterceptor, 30)
 public handler() {}`} />
+        <p>Priority changes ordering only inside a component's pipeline group. It cannot move a route interceptor before a guard or middleware because the groups always execute in this fixed nesting order:</p>
+        <CodeBlock filename="Request execution order" language="text" code={`Global interceptors: before
+  Guards + middleware (sorted together by ascending priority)
+    Route interceptors: before (sorted among themselves by ascending priority)
+      Controller
+    Route interceptors: after (reverse order)
+Global interceptors: after`} />
         <BulletList>
-          <li>Guard and middleware priorities are honored together and sorted ascending.</li>
-          <li>Route interceptors are sorted separately by ascending priority, then wrap the controller in that order.</li>
+          <li>Guards and middleware share one ascending-priority list. Their priorities order guards against guards, middleware against middleware, and guards against middleware.</li>
+          <li>Route-interceptor priority is scoped only to route interceptors. They are sorted separately, then wrap the controller in ascending-priority order.</li>
+          <li>No numeric priority can change the fixed group order shown above.</li>
           <li>Same-priority and stacked-decorator ordering follows metadata insertion details; do not make business logic depend on it.</li>
           <li>Global interceptor order follows discovery/import registration order; keep them order-independent where possible.</li>
         </BulletList>

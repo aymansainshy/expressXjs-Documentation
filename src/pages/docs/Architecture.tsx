@@ -227,7 +227,7 @@ export function Architecture() {
         <BulletList>
           <li><InlineCode>@Controller()</InlineCode> stores a base path and adds the controller class to <InlineCode>ControllerRegistry</InlineCode>.</li>
           <li>HTTP method decorators append method, path, and handler-name metadata.</li>
-          <li>Guards and middleware are merged into one ascending-priority list; route interceptors are sorted separately.</li>
+          <li>Guards and middleware are merged into one ascending-priority list. Route interceptors are sorted separately, and their priorities cannot move them before that list.</li>
           <li>Parameter and status-code metadata are captured once in the route closure.</li>
           <li>All controllers and route pipeline classes are resolved through the shared container in 0.0.6.</li>
         </BulletList>
@@ -257,6 +257,9 @@ export function Architecture() {
             <Zap className="h-4 w-4 shrink-0" /> Serialize with HttpResponseHandler
           </div>
         </div>
+        <Callout type="info" title="Priorities do not cross pipeline boundaries">
+          Guard and middleware priorities are compared with each other. Route-interceptor priorities are compared only with other route interceptors, so they cannot change the fixed nesting shown above.
+        </Callout>
         <Callout type="tip" title="Errors travel through the same composition model">
           With a global exception handler, controller errors become response values inside the route-interceptor chain. Guard, middleware, and route-interceptor failures are resolved before returning through global interceptors. Unresolved failures are delegated to the mounted Express error middleware.
         </Callout>

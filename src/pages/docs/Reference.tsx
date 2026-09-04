@@ -61,25 +61,26 @@ export function APIReference() {
       <Section id="pipeline-api" title="Request pipeline">
         <ReferenceTable rows={[
           { name: 'Guard', signature: 'abstract canActivate(req)', description: 'Base class for synchronous/asynchronous route authorization.', notes: 'False becomes an Unauthorized error.' },
-          { name: '@UseGuards(...classes, priority?)', signature: 'method decorator', description: 'Adds guard classes to the priority-sorted route pipeline.', notes: 'Default priority 1; classes are DI-resolved.' },
+          { name: '@UseGuards(...classes, priority?)', signature: 'method decorator', description: 'Adds guard classes to the shared guard/middleware priority list.', notes: 'Default priority 1; orders against both guards and middleware.' },
           { name: 'ExpressXMiddleware', signature: 'abstract use(ctx)', description: 'Base class for route-specific middleware.', notes: 'No next callback; returning continues.' },
-          { name: '@UseMiddlewares(...classes, priority?)', signature: 'method decorator', description: 'Adds middleware classes to the priority-sorted route pipeline.', notes: 'Default priority 3; classes are DI-resolved.' },
+          { name: '@UseMiddlewares(...classes, priority?)', signature: 'method decorator', description: 'Adds middleware classes to the shared guard/middleware priority list.', notes: 'Default priority 3; orders against both middleware and guards.' },
           { name: 'ExpressXInterceptor', signature: 'abstract intercept(ctx, handler)', description: 'Base class for wrapping downstream route execution.', notes: 'Method must return a Promise.' },
           { name: 'Handler.handle()', signature: 'Promise<any>', description: 'Runs the next interceptor or controller.', notes: 'Return the awaited result from intercept().' },
-          { name: 'Handler.getData(transform?)', signature: 'Promise<any>', description: 'Runs downstream and optionally transforms the result.', notes: 'An alternative to handle(), not an inspection-only method.' },
-          { name: '@UseInterceptors(...classes, priority?)', signature: 'method decorator', description: 'Adds ascending-priority route interceptors.', notes: 'Default priority 4; classes are DI-resolved.' },
+          { name: '@UseInterceptors(...classes, priority?)', signature: 'method decorator', description: 'Adds ascending-priority route interceptors.', notes: 'Default priority 4; scoped only to route interceptors and cannot move them before guards or middleware.' },
           { name: '@UseGlobalInterceptor()', signature: 'ClassDecorator', description: 'Registers a singleton interceptor around every route pipeline.', notes: 'Class must extend ExpressXInterceptor; resolved through DI.' },
         ]} />
       </Section>
 
       <Section id="response-api" title="Responses and errors">
         <ReferenceTable rows={[
+          { name: 'Plain controller result', signature: 'any', description: 'Serializes an object, array, primitive, or null directly as JSON.', notes: 'Uses @StatusCode when present; otherwise status 200.' },
+          { name: 'Direct ctx.res write', signature: 'void', description: 'Sends a response with the original Express response object.', notes: 'Automatic serialization is skipped after headers are sent.' },
           { name: 'new HttpResponse(code, data?)', signature: 'HttpResponse<T>', description: 'Structured success response serialized as JSON.', notes: 'Defaults to status 200.' },
           { name: 'HttpResponse.ok(data)', signature: 'HttpResponse<T>', description: 'Creates status 200.', notes: 'Static convenience.' },
           { name: 'HttpResponse.created(data)', signature: 'HttpResponse<T>', description: 'Creates status 201.', notes: 'Static convenience.' },
           { name: 'HttpResponse.noContent()', signature: 'HttpResponse<void>', description: 'Creates status 204 with no data.', notes: 'Static convenience.' },
-          { name: 'response.status(code)', signature: 'this', description: 'Mutates the response status.', notes: 'Chainable.' },
-          { name: 'response.body(data)', signature: 'this', description: 'Mutates response data.', notes: 'Chainable.' },
+          { name: 'HttpResponse.status(code)', signature: 'this', description: 'Mutates the framework response status.', notes: 'Chainable.' },
+          { name: 'HttpResponse.body(data)', signature: 'this', description: 'Mutates framework response data.', notes: 'Chainable.' },
           { name: 'new HttpErrorResponse(status, error)', signature: 'HttpErrorResponse', description: 'Structured JSON error result.', notes: 'May be returned directly or by an exception handler.' },
           { name: 'ExceptionHandler', signature: 'abstract catch(error)', description: 'Base class for the global error handler.', notes: 'Return may be sync/async and any type; HttpErrorResponse gives explicit status.' },
           { name: '@UseGlobalExceptionHandler()', signature: 'ClassDecorator', description: 'Registers the singleton global exception handler.', notes: 'Class must extend ExceptionHandler; later registration overwrites the token.' },
@@ -152,7 +153,7 @@ const issues = [
   ['DI fails inside a guard/middleware/interceptor', 'In 0.0.6 route pipeline classes are container-resolved. Add @Injectable/@Singleton metadata, use the exact registration token, and confirm the dependency is imported.'],
   ['UseValidators import fails after upgrading', 'The incomplete validator API was removed in 0.0.6. Validate with Express middleware, ExpressX route middleware, a schema library, or controller code.'],
   ['Middleware order is surprising', 'Guards and middleware are combined and sorted by ascending priority. Same-priority order and stacked decorators should not be relied on.'],
-  ['Interceptor runs code twice', 'Return the value from await handler.handle() or getData(). Returning undefined tells the runner to continue again.'],
+  ['Controller does not run behind an interceptor', 'Call handler.handle() to continue downstream and return its result or a transformed result. Omitting handle() intentionally short-circuits the chain.'],
   ['Unmatched routes return 500', 'Register a global exception handler and preserve numeric error.status so the internal not-found error remains 404.'],
   ['ESM/CommonJS or NodeNext error', 'Keep generated type: commonjs and NodeNext compiler settings aligned. The runtime package uses require for development TypeScript and Core is published as CommonJS.'],
   ['Production cannot import a controller', 'Run expressx build before tsc, deploy dist/.expressx/cache.json, keep outDir values aligned, and run from the project root.'],
