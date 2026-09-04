@@ -30,7 +30,7 @@ const resources = [
 export function Community() {
   return (
     <div className="min-h-screen pt-16">
-      <section className="border-b border-border bg-muted/30 py-20">
+      <section className="border-b border-border bg-muted/30 py-14 sm:py-20">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-primary">Open source</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">ExpressX.js community</h1>
@@ -38,10 +38,10 @@ export function Community() {
         </div>
       </section>
 
-      <section className="py-16 sm:py-20">
+      <section className="py-12 sm:py-20">
         <div className="mx-auto grid max-w-5xl gap-5 px-4 sm:grid-cols-2 sm:px-6 lg:px-8">
           {resources.map((resource) => (
-            <a key={resource.title} href={resource.href} target="_blank" rel="noreferrer" className="group rounded-2xl border border-border bg-background p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-brand-primary/50">
+            <a key={resource.title} href={resource.href} target="_blank" rel="noreferrer" className="group min-w-0 rounded-2xl border border-border bg-background p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-brand-primary/50 sm:p-6">
               <div className="flex items-start justify-between">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-primary/10 text-brand-primary"><resource.icon className="h-5 w-5" /></div>
                 <ExternalLink className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-brand-primary" />

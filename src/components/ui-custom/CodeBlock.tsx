@@ -55,40 +55,40 @@ export function CodeBlock({ code, language, filename }: CodeBlockProps) {
 
   return (
     <div
-      className="my-6 rounded-xl overflow-hidden border shadow-xl group"
+      className="code-block group my-6 min-w-0 overflow-hidden rounded-xl border shadow-xl"
       style={{ background: 'var(--code-bg)', borderColor: 'var(--code-border)' }}
     >
       {/* Header */}
       <div
-        className="flex items-center justify-between px-4 py-3 border-b"
+        className="flex min-w-0 items-center justify-between gap-2 border-b px-3 py-2.5 sm:px-4 sm:py-3"
         style={{ background: 'var(--code-surface)', borderColor: 'var(--code-border)' }}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <div className="flex gap-1.5">
             <div className="w-3 h-3 rounded-full bg-[#FF5F56]" />
             <div className="w-3 h-3 rounded-full bg-[#FFBD2E]" />
             <div className="w-3 h-3 rounded-full bg-[#27C93F]" />
           </div>
           {filename && (
-            <span className="text-sm font-mono ml-2 text-[color:var(--code-muted)]">
+            <span className="min-w-0 truncate font-mono text-xs text-[color:var(--code-muted)] sm:ml-2 sm:text-sm">
               {filename}
             </span>
           )}
         </div>
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs text-[color:var(--code-muted)] hover:text-white hover:bg-[color:var(--code-border)] transition-all duration-200 opacity-0 group-hover:opacity-100"
+          className="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-[color:var(--code-muted)] opacity-100 transition-all duration-200 hover:bg-[color:var(--code-border)] hover:text-white sm:px-3 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
           aria-label="Copy code"
         >
           {isCopied ? (
             <>
               <Check className="w-3.5 h-3.5 text-[#3FB950]" />
-              <span className="text-[#3FB950]">Copied!</span>
+              <span className="hidden text-[#3FB950] sm:inline">Copied!</span>
             </>
           ) : (
             <>
               <Copy className="w-3.5 h-3.5" />
-              <span>Copy</span>
+              <span className="hidden sm:inline">Copy</span>
             </>
           )}
         </button>
@@ -117,7 +117,7 @@ export function CodeBlock({ code, language, filename }: CodeBlockProps) {
 // Simple inline code component
 export function InlineCode({ children }: { children: React.ReactNode }) {
   return (
-    <code className="px-1.5 py-0.5 rounded text-sm font-mono bg-muted text-foreground">
+    <code className="break-words rounded bg-muted px-1.5 py-0.5 font-mono text-[0.82em] text-foreground [overflow-wrap:anywhere]">
       {children}
     </code>
   );

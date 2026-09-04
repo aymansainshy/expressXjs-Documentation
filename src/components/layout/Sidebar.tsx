@@ -96,7 +96,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       {/* Sidebar - z-40 to be below header (z-50) */}
       <aside
-        className={`fixed lg:sticky top-16 left-0 z-40 w-[280px] h-[calc(100vh-4rem)] bg-background border-r border-border transition-transform duration-300 ease-out lg:translate-x-0 ${
+        className={`fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-[calc(100vw-2rem)] max-w-[280px] border-r border-border bg-background transition-transform duration-300 ease-out lg:sticky lg:w-[280px] lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >

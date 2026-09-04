@@ -52,13 +52,13 @@ export function Home() {
       <section className="relative overflow-hidden border-b border-border pt-16">
         <div className="pointer-events-none absolute inset-0 mesh-gradient" aria-hidden="true" />
         <div className="pointer-events-none absolute left-1/4 top-1/4 h-80 w-80 rounded-full bg-brand-primary/10 blur-[110px]" aria-hidden="true" />
-        <div className="relative mx-auto grid max-w-[1400px] items-center gap-12 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-[0.9fr_1.1fr] lg:px-8 lg:py-32">
+        <div className="relative mx-auto grid max-w-[1400px] items-center gap-10 px-4 py-16 sm:px-6 sm:py-28 lg:grid-cols-[0.9fr_1.1fr] lg:gap-12 lg:px-8 lg:py-32">
           <div>
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-brand-primary/20 bg-brand-primary/10 px-3 py-1.5 text-sm font-medium text-brand-primary">
               <span className="h-2 w-2 rounded-full bg-brand-primary" />
               Core & CLI 0.0.6
             </div>
-            <h1 className="max-w-xl text-5xl font-semibold tracking-tight sm:text-6xl lg:text-7xl">
+            <h1 className="max-w-xl break-words text-4xl font-semibold leading-tight tracking-tight sm:text-6xl lg:text-7xl">
               Structured TypeScript. <span className="gradient-text">Express at heart.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
@@ -77,8 +77,8 @@ export function Home() {
               </a>
             </div>
             <div className="mt-8 flex items-center gap-3 rounded-xl border border-border bg-background/70 px-4 py-3 font-mono text-sm shadow-sm backdrop-blur-sm">
-              <Terminal className="h-4 w-4 text-brand-primary" />
-              <span className="overflow-x-auto whitespace-nowrap">npx @expressxjs/cli new my-api</span>
+              <Terminal className="h-4 w-4 shrink-0 text-brand-primary" />
+              <span className="min-w-0 overflow-x-auto whitespace-nowrap">npx @expressxjs/cli new my-api</span>
             </div>
           </div>
 
@@ -89,7 +89,7 @@ export function Home() {
         </div>
       </section>
 
-      <section className="bg-muted/30 py-20 sm:py-24">
+      <section className="bg-muted/30 py-16 sm:py-24">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-primary">Framework essentials</p>
@@ -110,7 +110,7 @@ export function Home() {
         </div>
       </section>
 
-      <section className="py-20 sm:py-24">
+      <section className="py-16 sm:py-24">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
           <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Documentation grounded in the source</h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-muted-foreground">

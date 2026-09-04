@@ -42,7 +42,7 @@ const toneClasses = {
 
 function ArchitectureNode({ icon: Icon, title, detail, tone = 'brand' }: ArchitectureNodeProps) {
   return (
-    <div className={`min-w-0 rounded-xl border p-4 shadow-sm ${toneClasses[tone]}`}>
+    <div className={`min-w-0 rounded-xl border p-3 shadow-sm sm:p-4 ${toneClasses[tone]}`}>
       <div className="flex items-center gap-2 font-semibold text-foreground">
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background/80 shadow-sm">
           <Icon className="h-4 w-4" />
@@ -101,7 +101,7 @@ function BootstrapExplorer() {
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-muted/20">
-      <div className="grid gap-2 border-b border-border p-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-2 border-b border-border p-3 sm:grid-cols-3 lg:grid-cols-6">
         {bootstrapStages.map((stage, index) => (
           <button
             key={stage.label}
@@ -121,7 +121,7 @@ function BootstrapExplorer() {
           </button>
         ))}
       </div>
-      <div className="grid gap-4 p-5 sm:grid-cols-[160px_1fr] sm:items-start">
+      <div className="grid gap-4 p-4 sm:grid-cols-[160px_1fr] sm:items-start sm:p-5">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-primary">Owned by</p>
           <p className="mt-1 font-semibold text-foreground">{selected.owner}</p>
@@ -140,6 +140,14 @@ const requestSteps = [
   { label: 'Controller method', note: 'plain value or response object', tone: 'brand' },
 ] as const;
 
+const requestStepWidths = [
+  'sm:max-w-full',
+  'sm:max-w-[92%]',
+  'sm:max-w-[84%]',
+  'sm:max-w-[76%]',
+  'sm:max-w-[68%]',
+] as const;
+
 export function Architecture() {
   return (
     <Article
@@ -155,10 +163,10 @@ export function Architecture() {
         </p>
 
         <div className="my-7 overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
-          <div className="border-b border-border bg-muted/40 px-5 py-3">
+          <div className="border-b border-border bg-muted/40 px-4 py-3 sm:px-5">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-primary">Discovery plane · before routing exists</p>
           </div>
-          <div className="grid items-stretch gap-3 p-5 lg:grid-cols-[1fr_auto_1fr_auto_1fr]">
+          <div className="grid items-stretch gap-3 p-3 sm:p-5 lg:grid-cols-[1fr_auto_1fr_auto_1fr]">
             <ArchitectureNode icon={Braces} title="Decorated source" detail="Application, controllers, and global components declare intent in TypeScript." tone="blue" />
             <Connector />
             <ArchitectureNode icon={PackageSearch} title="AST scanner" detail="Finds canonical decorator syntax and ExpressX import aliases without matching comments or strings." tone="violet" />
@@ -166,15 +174,15 @@ export function Architecture() {
             <ArchitectureNode icon={FileJson2} title="Discovery manifest" detail="sourceDir/.expressx/cache.json stores the exact modules Core must import." tone="amber" />
           </div>
 
-          <div className="flex items-center gap-3 border-y border-border bg-brand-primary/[0.04] px-5 py-3 text-xs text-muted-foreground">
-            <ArrowDown className="h-4 w-4 text-brand-primary" aria-hidden="true" />
+          <div className="flex items-start gap-3 border-y border-border bg-brand-primary/[0.04] px-4 py-3 text-xs text-muted-foreground sm:items-center sm:px-5">
+            <ArrowDown className="h-4 w-4 shrink-0 text-brand-primary" aria-hidden="true" />
             Module imports execute decorators; decorators populate the runtime registries.
           </div>
 
-          <div className="border-b border-border bg-muted/40 px-5 py-3">
+          <div className="border-b border-border bg-muted/40 px-4 py-3 sm:px-5">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-primary">Runtime plane · one process</p>
           </div>
-          <div className="grid items-stretch gap-3 p-5 lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr]">
+          <div className="grid items-stretch gap-3 p-3 sm:p-5 lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr]">
             <ArchitectureNode icon={Database} title="DI + registries" detail="Application token, controller list, global handlers, and constructor providers." tone="violet" />
             <Connector />
             <ArchitectureNode icon={Workflow} title="ExpressXFactory" detail="Runs hooks and coordinates Kernel, AppRouter, 404, and error handling." />
@@ -228,7 +236,7 @@ export function Architecture() {
       <Section id="request-flow" title="Request execution flow">
         <p>For every matched request, control moves inward through wrappers, reaches the controller, then returns outward through the same interceptor layers before JSON serialization.</p>
         <div className="my-7 rounded-2xl border border-border bg-muted/20 p-4 sm:p-6">
-          <div className="mb-5 flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+          <div className="mb-5 flex flex-col items-start justify-between gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground sm:flex-row sm:items-center sm:gap-3">
             <span>Request enters</span>
             <span className="flex items-center gap-2 text-brand-primary">Response exits <ArrowRight className="h-4 w-4" /></span>
           </div>
@@ -236,8 +244,7 @@ export function Architecture() {
             {requestSteps.map((step, index) => (
               <div
                 key={step.label}
-                className={`rounded-xl border p-3 ${toneClasses[step.tone]} ${index > 0 ? 'sm:mx-auto' : ''}`}
-                style={{ maxWidth: `${100 - index * 8}%` }}
+                className={`w-full rounded-xl border p-3 ${toneClasses[step.tone]} ${requestStepWidths[index]} ${index > 0 ? 'sm:mx-auto' : ''}`}
               >
                 <div className="flex flex-col justify-between gap-1 sm:flex-row sm:items-center">
                   <span className="font-semibold text-foreground">{step.label}</span>
@@ -246,8 +253,8 @@ export function Architecture() {
               </div>
             ))}
           </div>
-          <div className="mx-auto mt-3 flex max-w-md items-center justify-center gap-2 rounded-lg bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-sm">
-            <Zap className="h-4 w-4" /> Serialize with HttpResponseHandler
+          <div className="mx-auto mt-3 flex max-w-md items-center justify-center gap-2 rounded-lg bg-foreground px-4 py-3 text-center text-sm font-semibold text-background shadow-sm">
+            <Zap className="h-4 w-4 shrink-0" /> Serialize with HttpResponseHandler
           </div>
         </div>
         <Callout type="tip" title="Errors travel through the same composition model">
@@ -257,7 +264,7 @@ export function Architecture() {
 
       <Section id="development-loop" title="Development and production paths">
         <div className="grid gap-5 lg:grid-cols-2">
-          <div className="rounded-2xl border border-border p-5">
+          <div className="rounded-2xl border border-border p-4 sm:p-5">
             <div className="flex items-center gap-3">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400"><SquareTerminal className="h-5 w-5" /></span>
               <div><p className="font-semibold text-foreground">Development</p><p className="text-xs text-muted-foreground">expressx dev</p></div>
@@ -267,7 +274,7 @@ export function Architecture() {
               <p>Missing or invalid source cache → full AST scan → atomic cache write → imports.</p>
             </div>
           </div>
-          <div className="rounded-2xl border border-border p-5">
+          <div className="rounded-2xl border border-border p-4 sm:p-5">
             <div className="flex items-center gap-3">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400"><ShieldCheck className="h-5 w-5" /></span>
               <div><p className="font-semibold text-foreground">Production</p><p className="text-xs text-muted-foreground">expressx build → tsc → node</p></div>
