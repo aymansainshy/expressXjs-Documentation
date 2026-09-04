@@ -1,6 +1,6 @@
 # ExpressX.js documentation
 
-The official developer documentation site for ExpressX.js Core and CLI 0.0.5. The content is reviewed against the implementation and covers installation, application lifecycle, routing, dependency injection, request pipelines, responses, error handling, discovery, every CLI command, production builds, deployment practices, troubleshooting, and known limitations.
+The official developer documentation site for ExpressX.js Core and CLI 0.0.6. The content is reviewed against the tagged implementation and covers installation, architecture, application lifecycle, routing, dependency injection, request pipelines, responses, error handling, discovery, every CLI command, production builds, deployment practices, troubleshooting, and known limitations.
 
 ## Run locally
 
@@ -23,6 +23,7 @@ npm run preview
 
 - `src/pages/docs/GettingStarted.tsx` — introduction, installation, quick start, and project structure
 - `src/pages/docs/CoreConcepts.tsx` — application lifecycle, routing, and dependency injection
+- `src/pages/docs/Architecture.tsx` — under-the-hood discovery, bootstrap, routing, and request-flow diagrams
 - `src/pages/docs/AutoConfiguration.tsx` — auto-configuration, discovery cache, file tracking, and production mapping
 - `src/pages/docs/RuntimeGuide.tsx` — request/response, pipeline, errors, discovery, and configuration
 - `src/pages/docs/CLI.tsx` — CLI overview, command reference, and generators

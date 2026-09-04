@@ -21,6 +21,7 @@ export function RequestResponseGuide() {
     >
       <Section id="parameter-decorators" title="Parameter decorators">
         <ReferenceTable rows={[
+          { name: '@Param(key)', signature: 'ParameterDecorator', description: 'Injects req.params[key].', notes: 'Public in 0.0.6; no coercion or validation is applied.' },
           { name: '@Body()', signature: 'ParameterDecorator', description: 'Injects req.body.', notes: 'Register express.json() or another body parser in onInit().' },
           { name: '@Ctx()', signature: 'ParameterDecorator', description: 'Injects { req, res } as HttpContext.', notes: 'Use for headers, query, cookies, route params, or direct response access.' },
           { name: '@Next()', signature: 'ParameterDecorator', description: 'Injects Express next.', notes: 'Call next(error) to enter the mounted fallback error handler.' },
@@ -33,6 +34,7 @@ export function RequestResponseGuide() {
   HttpResponse,
   Next,
   NextFn,
+  Param,
   POST,
 } from '@expressxjs/core';
 
@@ -40,6 +42,7 @@ export function RequestResponseGuide() {
 export class OrderController {
   @POST('/:accountId')
   public create(
+    @Param('accountId') accountId: string,
     @Ctx() ctx: HttpContext,
     @Body() body: { sku: string },
     @Next() next: NextFn,
@@ -47,14 +50,14 @@ export class OrderController {
     if (!body.sku) return next(new Error('sku is required'));
 
     return HttpResponse.created({
-      accountId: ctx.req.params.accountId,
+      accountId,
       sku: body.sku,
       source: ctx.req.query.source,
     });
   }
 }`} />
-        <Callout type="warning" title="No public @Param in 0.0.5">
-          A <InlineCode>Param(key)</InlineCode> decorator exists in the implementation file, but it is omitted from the decorators barrel and therefore from the documented package surface. <InlineCode>@Req</InlineCode> and <InlineCode>@Res</InlineCode> implementations are commented out. Use <InlineCode>@Ctx()</InlineCode> and read <InlineCode>ctx.req.params</InlineCode>, <InlineCode>ctx.req.query</InlineCode>, or <InlineCode>ctx.req.headers</InlineCode>.
+        <Callout type="tip" title="Route parameters are public in 0.0.6">
+          Use <InlineCode>@Param('name')</InlineCode> for one path value. <InlineCode>@Req</InlineCode> and <InlineCode>@Res</InlineCode> are not public decorators; use <InlineCode>@Ctx()</InlineCode> when you need query parameters, headers, or direct request/response access.
         </Callout>
         <p>Undecorated handler parameters receive <InlineCode>undefined</InlineCode>. Parameter decorators only select existing Express values; they do not coerce types or validate DTOs.</p>
       </Section>
@@ -120,8 +123,8 @@ export function RequestPipeline() {
       <Section id="execution-order" title="Actual execution order">
         <Flow steps={['Global interceptor (before)', 'Guards / middleware by priority', 'Route interceptor (before)', 'Controller', 'Route interceptor (after)', 'Global interceptor (after)', 'Serialize']} />
         <p>Guards and route middleware share one ascending-priority list. Guard decorators default to priority 1 and middleware decorators to priority 3, so guards normally run first. Route interceptors execute after that list and around the controller. Global interceptors wrap the entire route pipeline.</p>
-        <Callout type="warning" title="Validators are not active">
-          <InlineCode>@UseValidators</InlineCode> and validator metadata exist, but the router's validator collection and execution are commented out, and the <InlineCode>Validator</InlineCode> base class is not exported by the base barrel. No validator step belongs in the version 0.0.5 runtime flow. Validate in an Express middleware, an ExpressX route middleware, or the controller.
+        <Callout type="info" title="Validation is application-owned">
+          The incomplete <InlineCode>@UseValidators</InlineCode> and <InlineCode>Validator</InlineCode> surfaces were removed in 0.0.6. Validate with an ordinary Express middleware, an ExpressX route middleware, a schema library, or controller/service code.
         </Callout>
       </Section>
 
@@ -162,6 +165,20 @@ public create(@Body() body: { name: string }) {
 }`} />
       </Section>
 
+      <Section id="pipeline-dependency-injection" title="Dependency injection in the pipeline">
+        <p>Version 0.0.6 resolves route guards, middleware, and interceptors through <InlineCode>ExpressXContainer</InlineCode>. Their constructors can therefore inject services and tokens just like controllers. Apply an ExpressX DI decorator to the pipeline class so tsyringe has the required metadata.</p>
+        <CodeBlock language="typescript" code={`@Injectable()
+export class AccountGuard extends Guard {
+  public constructor(
+    @Inject(AccountService) private readonly accounts: AccountService,
+  ) { super(); }
+
+  public canActivate(req: Request) {
+    return this.accounts.canAccess(req.params.accountId);
+  }
+}`} />
+      </Section>
+
       <Section id="route-interceptors" title="Route interceptors">
         <Signature>{`abstract intercept(ctx: HttpContext, callHandler: Handler): Promise<any>`}</Signature>
         <p>Call <InlineCode>callHandler.handle()</InlineCode> to run the rest of the chain. Use <InlineCode>getData(transform?)</InlineCode> as a convenience that awaits downstream data and optionally transforms it.</p>
@@ -185,7 +202,7 @@ export class TimingInterceptor extends ExpressXInterceptor {
       </Section>
 
       <Section id="global-interceptors" title="Global interceptors">
-        <p>Decorate an interceptor class with <InlineCode>@UseGlobalInterceptor()</InlineCode>. The decorator requires the class to extend <InlineCode>ExpressXInterceptor</InlineCode>, registers it as a singleton, and adds it to a global registry. Unlike route interceptors, global interceptors are resolved through DI.</p>
+        <p>Decorate an interceptor class with <InlineCode>@UseGlobalInterceptor()</InlineCode>. The decorator requires the class to extend <InlineCode>ExpressXInterceptor</InlineCode>, registers it as a singleton, and adds it to a global registry. Global and route interceptors are both resolved through DI.</p>
         <CodeBlock language="typescript" code={`import {
   ExpressXInterceptor,
   Handler,
@@ -209,7 +226,7 @@ export class EnvelopeInterceptor extends ExpressXInterceptor {
       </Section>
 
       <Section id="priority" title="Priority and ordering details">
-        <p>The last numeric argument to <InlineCode>@UseGuards</InlineCode>, <InlineCode>@UseMiddlewares</InlineCode>, <InlineCode>@UseValidators</InlineCode>, or <InlineCode>@UseInterceptors</InlineCode> is stored as the priority for every class preceding it in that decorator call.</p>
+        <p>The last numeric argument to <InlineCode>@UseGuards</InlineCode>, <InlineCode>@UseMiddlewares</InlineCode>, or <InlineCode>@UseInterceptors</InlineCode> is stored as the priority for every class preceding it in that decorator call.</p>
         <CodeBlock language="typescript" code={`@GET('/')
 @UseGuards(SessionGuard, RoleGuard, 10)
 @UseMiddlewares(AuditMiddleware, 20)
@@ -217,8 +234,7 @@ export class EnvelopeInterceptor extends ExpressXInterceptor {
 public handler() {}`} />
         <BulletList>
           <li>Guard and middleware priorities are honored together and sorted ascending.</li>
-          <li>Validator metadata is unused.</li>
-          <li>Route-interceptor priority is stored but not sorted or otherwise consulted.</li>
+          <li>Route interceptors are sorted separately by ascending priority, then wrap the controller in that order.</li>
           <li>Same-priority and stacked-decorator ordering follows metadata insertion details; do not make business logic depend on it.</li>
           <li>Global interceptor order follows discovery/import registration order; keep them order-independent where possible.</li>
         </BulletList>
@@ -278,7 +294,7 @@ export class AppExceptionHandler extends ExceptionHandler {
       <Section id="not-found" title="Not found handling">
         <p>After the generated router, the factory mounts a catch-all middleware that throws an internal error with <InlineCode>status = 404</InlineCode> and message <InlineCode>Route not found: [METHOD] /path</InlineCode>. It then reaches the global exception handler. Without a handler, even this unmatched route is sent by the framework fallback as a generic 500 response.</p>
         <Callout type="warning" title="Register a global handler for correct 404 JSON">
-          Version 0.0.5 has no built-in public 404 response body. A global exception handler that respects <InlineCode>error.status</InlineCode> is necessary if the application should return 404 rather than the no-handler generic 500.
+          Version 0.0.6 has no built-in public 404 response body. A global exception handler that respects <InlineCode>error.status</InlineCode> is necessary if the application should return 404 rather than the no-handler generic 500.
         </Callout>
       </Section>
 
@@ -323,12 +339,12 @@ export function DiscoveryConfiguration() {
       </Section>
 
       <Section id="runtime-mode" title="Development and production mode">
-        <p>The scanner uses one environment switch: <InlineCode>EXPRESSX_RUNTIME === 'ts'</InlineCode>.</p>
+        <p>The scanner uses TypeScript mode when <InlineCode>EXPRESSX_RUNTIME=ts</InlineCode> or <InlineCode>NODE_ENV=development</InlineCode>. If <InlineCode>EXPRESSX_RUNTIME</InlineCode> is provided, only <InlineCode>ts</InlineCode> and <InlineCode>js</InlineCode> are accepted.</p>
         <ReferenceTable rows={[
-          { name: 'Development', signature: 'EXPRESSX_RUNTIME=ts', description: 'Scans .ts under sourceDir, loads with require(), and stores cache under sourceDir/.expressx.', notes: 'expressx dev sets this automatically and preloads @expressxjs/core/runtime.' },
-          { name: 'Production', signature: 'any other value / unset', description: 'Scans .js under outDir, loads with dynamic import(), and stores cache under outDir/.expressx.', notes: 'npm start normally leaves the variable unset.' },
+          { name: 'Development', signature: 'EXPRESSX_RUNTIME=ts or NODE_ENV=development', description: 'Scans TypeScript variants under sourceDir, loads with require(), and stores cache under sourceDir/.expressx.', notes: 'expressx dev sets both defaults and preloads @expressxjs/core/runtime.' },
+          { name: 'Production', signature: 'neither development condition', description: 'Imports JavaScript variants listed in the required outDir cache with dynamic import().', notes: 'npm start normally uses NODE_ENV=production and no runtime override.' },
         ]} />
-        <p><InlineCode>NODE_ENV</InlineCode> does not choose scanner mode. The dev server sets it to <InlineCode>development</InlineCode> only when it was previously unset. Application code may use it normally, but Core has no environment configuration service.</p>
+        <p>The dev server passes these values only to its child process instead of mutating the parent CLI environment. Core has no general environment configuration service.</p>
       </Section>
 
       <Section id="cache" title="Discovery cache">
@@ -346,9 +362,10 @@ export function DiscoveryConfiguration() {
 }`} />
         <BulletList>
           <li>The CLI dev server validates existing cache entries and watches source changes.</li>
-          <li>A missing cache triggers a full scan in both development and production in the current implementation.</li>
+          <li>A missing or invalid development cache triggers a full source scan and regeneration.</li>
+          <li>A missing or invalid production cache stops startup with instructions to run <InlineCode>expressx build</InlineCode>.</li>
           <li>A stale production cache is not validated against file metadata at startup; regenerate it during every build.</li>
-          <li>The scanner's text filter can produce a false positive if decorator names occur in unrelated code, but importing the file is normally harmless.</li>
+          <li>The AST detector checks ExpressX imports and actual calls, avoiding comment/string false positives from the earlier text filter.</li>
         </BulletList>
       </Section>
 
@@ -356,16 +373,19 @@ export function DiscoveryConfiguration() {
         <p><InlineCode>ExpressXScanner</InlineCode> and its cache types are exported. Most applications should let the CLI and factory call it. Tooling authors can use:</p>
         <ReferenceTable rows={[
           { name: 'getConfig()', signature: 'ScanConfig', description: 'Reads sourceDir/outDir from package.json.', notes: 'Uses process.cwd().' },
-          { name: 'loadCache(isDev)', signature: 'FileCache | null', description: 'Reads and validates the cache version.', notes: 'Returns null for missing, unreadable, or version-mismatched cache.' },
-          { name: 'saveCache(cache, isDev)', signature: 'void', description: 'Creates the cache directory and writes JSON.', notes: 'Target is derived from package config.' },
-          { name: 'fullScan(isDev)', signature: 'Promise<FileCache>', description: 'Globs and filters TypeScript or JavaScript files.', notes: 'Does not save or import by itself.' },
+          { name: 'getCachePath(isDev, override?)', signature: 'string', description: 'Resolves the cache path inside the project.', notes: 'The optional directory supports custom build output.' },
+          { name: 'loadCache(isDev, override?)', signature: 'FileCache | null', description: 'Reads and validates the complete manifest.', notes: 'Returns null for missing, unreadable, incompatible, or unsafe cache data.' },
+          { name: 'saveCache(cache, isDev, override?)', signature: 'void', description: 'Validates and atomically writes JSON.', notes: 'Creates the cache directory when necessary.' },
+          { name: 'fileContainsDecorators(path, isTs)', signature: 'boolean', description: 'Parses a source file and detects imported entry-point decorators.', notes: 'Shared by full scans and the CLI watcher.' },
+          { name: 'fullScan(isDev)', signature: 'Promise<FileCache>', description: 'Globs and AST-filters TypeScript or JavaScript variants.', notes: 'Does not save or import by itself.' },
           { name: 'importFromCache(cache, isDev)', signature: 'Promise<void>', description: 'Loads each cached file so decorators execute.', notes: 'A failed import aborts startup.' },
-          { name: 'prefurmScanning()', signature: 'Promise<void>', description: 'Loads or creates a cache and imports its files.', notes: 'The public method name is misspelled in 0.0.5; prefer factory-managed use.' },
+          { name: 'performScanning()', signature: 'Promise<void>', description: 'Loads/imports the selected cache, rebuilding only in development.', notes: 'Used by Kernel.start().' },
+          { name: 'prefurmScanning()', signature: 'Promise<void>', description: 'Deprecated alias for performScanning().', notes: 'Kept for compatibility with the misspelled earlier API.' },
         ]} />
       </Section>
 
       <Section id="logging" title="Framework logging">
-        <p>Core logs bootstrap, scanning, routing, request, response, and error events. An <InlineCode>ExpressXLogger</InlineCode> implementation supports debug/info/success/warn/error levels, timestamps, colors, and a minimum level. However, the checked-in source logger barrel currently exports nothing, while an older local built artifact exports <InlineCode>ExpressXLogger</InlineCode>. Treat direct logger import as unstable until the source barrel and published package are aligned.</p>
+        <p>Core logs bootstrap, scanning, routing, request, response, and error events. <InlineCode>ExpressXLogger</InlineCode> is publicly exported in 0.0.6 and supports debug/info/success/warn/error levels, timestamps, colors, and a configurable minimum level.</p>
       </Section>
     </Article>
   );

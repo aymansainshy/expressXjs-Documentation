@@ -20,7 +20,7 @@ export function Introduction() {
     >
       <Section id="what-it-is" title="What ExpressX.js is">
         <p>
-          ExpressX.js is an HTTP application framework built directly on Express 5. It keeps the Express request and response objects available while organizing an application around controllers, services, decorators, and lifecycle hooks. Version 0.0.5 contains two packages: <InlineCode>@expressxjs/core</InlineCode> and <InlineCode>@expressxjs/cli</InlineCode>.
+          ExpressX.js is an HTTP application framework built directly on Express 5. It keeps the Express request and response objects available while organizing an application around controllers, services, decorators, and lifecycle hooks. Version 0.0.6 contains two synchronized packages: <InlineCode>@expressxjs/core</InlineCode> and <InlineCode>@expressxjs/cli</InlineCode>.
         </p>
         <p>
           Core scans your project for decorated classes, resolves controllers and services through a tsyringe container, builds an Express router, executes the route pipeline, and serializes handler results as JSON. The CLI creates projects, generates components, maintains the discovery cache during development, and prepares that cache for production.
@@ -43,8 +43,25 @@ export function Introduction() {
           ExpressX.js currently targets JSON HTTP applications. It does not provide modules, WebSocket gateways, OpenAPI generation, database adapters, authentication strategies, queues, microservices, or a deployment platform. Add those capabilities with normal Express middleware and third-party packages when needed.
         </p>
         <Callout type="info" title="Implementation snapshot">
-          These docs describe the Core and CLI source at version 0.0.5. Where an exported symbol is incomplete or not wired into the runtime, the limitation is called out instead of describing intended behavior as finished behavior.
+          These docs describe the tagged Core and CLI source at version 0.0.6. Where an API is not wired into the runtime, the limitation is called out instead of describing intended behavior as finished behavior.
         </Callout>
+      </Section>
+
+      <Section id="whats-new" title="What changed in 0.0.6">
+        <div className="grid gap-4 sm:grid-cols-2">
+          {[
+            ['Safer discovery', 'The scanner now parses TypeScript and emitted JavaScript, validates the full manifest shape and paths, writes cache files atomically, and refuses production startup without a valid production cache.'],
+            ['A consistent DI pipeline', 'Controllers, guards, route middleware, route interceptors, global interceptors, the application, and the global exception handler are resolved by the shared container.'],
+            ['Correct public surfaces', '@Param() is exported, scanner/cache types are public, ExpressXLogger is aligned, incomplete validator and application-option APIs were removed, and runtime markers report the installed package.'],
+            ['More reliable CLI tooling', 'The dev server validates projects before starting, handles restarts and shutdown more safely, watches TypeScript variants, and build --output writes the cache to the requested directory.'],
+          ].map(([title, description]) => (
+            <div key={title} className="rounded-xl border border-border bg-muted/20 p-4">
+              <h3 className="font-semibold text-foreground">{title}</h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
+            </div>
+          ))}
+        </div>
+        <p>Existing 0.0.5 applications should remove imports of <InlineCode>Options</InlineCode>, <InlineCode>@UseValidators</InlineCode>, and <InlineCode>Validator</InlineCode>, then regenerate both discovery caches during the upgrade.</p>
       </Section>
 
       <Section id="mental-model" title="Mental model">
@@ -81,7 +98,7 @@ export function Installation() {
           <li>CommonJS output, or NodeNext configured so the package's CommonJS runtime can be loaded.</li>
         </BulletList>
         <Callout type="warning" title="Node.js support policy">
-          Version 0.0.5 does not declare an <InlineCode>engines.node</InlineCode> range, so there is no source-backed minimum or officially supported Node.js matrix to quote. The generated project targets ES2021 and uses modern Node APIs. Use a maintained Node.js release and pin it in your own project until the package publishes an engines policy.
+          Version 0.0.6 does not declare an <InlineCode>engines.node</InlineCode> range, so there is no source-backed minimum or officially supported Node.js matrix to quote. The generated project targets ES2021 and uses modern Node APIs. Use a maintained Node.js release and pin it in your own project until the package publishes an engines policy.
         </Callout>
       </Section>
 
@@ -164,9 +181,9 @@ export function QuickStart() {
       <Section id="create-project" title="1. Create the project">
         <CodeBlock language="bash" code={`npx @expressxjs/cli new my-api --template default
 cd my-api`} />
-        <p>The default template includes the application, server entrypoint, and a users CRUD resource. The <InlineCode>api</InlineCode> template adds global exception handling; <InlineCode>full</InlineCode> also adds a guard, middleware, route interceptor, and global response interceptor.</p>
-        <Callout type="warning" title="0.0.5 source-tree logger caveat">
-          The current CLI templates import <InlineCode>ExpressXLogger</InlineCode>. The checked-in Core source logger barrel is empty even though an older built artifact exports that class. If a fresh Core build reports that the export is missing, replace the generated logger calls with <InlineCode>console.log</InlineCode>/<InlineCode>console.error</InlineCode>. The examples below deliberately use console so they compile against the current source barrel.
+        <p>The default template includes the application, server entrypoint, and a users CRUD resource. The <InlineCode>api</InlineCode> template adds global exception handling; <InlineCode>full</InlineCode> also adds request-logger middleware, a route timing interceptor, and a global response-envelope interceptor.</p>
+        <Callout type="tip" title="Generated logging is available">
+          Version 0.0.6 aligns the public <InlineCode>ExpressXLogger</InlineCode> export with the generated templates, so scaffolded logging compiles against the tagged Core package.
         </Callout>
       </Section>
 
@@ -306,7 +323,6 @@ export function ProjectStructure() {
 ├── src/
 │   ├── common/
 │   │   ├── exceptions/app.exception-handler.ts
-│   │   ├── guards/api-key.guard.ts
 │   │   ├── interceptors/
 │   │   │   ├── response-envelope.interceptor.ts
 │   │   │   └── timing.interceptor.ts
@@ -335,12 +351,12 @@ export function ProjectStructure() {
       </Section>
 
       <Section id="discovery-rules" title="What discovery actually finds">
-        <p>The scanner checks source text for these class decorators:</p>
+        <p>The scanner parses source syntax and tracks files that use these class decorators from an ExpressX import:</p>
         <CodeBlock language="text" code={`@Application
 @Controller
 @UseGlobalInterceptor
 @UseGlobalExceptionHandler`} />
-        <p>Files containing only services, route guards, route middleware, or route interceptors are not independently discovered. They must be imported by a discovered file or another reachable import. Development scans <InlineCode>*.ts</InlineCode>; production scans <InlineCode>*.js</InlineCode>. Development test/declaration files and dependency, cache, Git, and nested build paths are excluded; keep tests out of compiled production output.</p>
+        <p>Files containing only services, route guards, route middleware, or route interceptors are not independently discovered. They must be imported by a discovered file or another reachable import. Development scans <InlineCode>.ts</InlineCode>, <InlineCode>.tsx</InlineCode>, <InlineCode>.mts</InlineCode>, and <InlineCode>.cts</InlineCode>; production supports the corresponding JavaScript variants. Test/declaration files and dependency, cache, Git, and nested build paths are excluded.</p>
       </Section>
 
       <Section id="organizing-code" title="Organizing larger applications">

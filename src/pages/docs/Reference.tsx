@@ -11,7 +11,7 @@ import {
 export function APIReference() {
   return (
     <Article
-      eyebrow="ExpressX.js reference · Core 0.0.5"
+      eyebrow="ExpressX.js reference · Core 0.0.6"
       title="API reference"
       description="Signatures and runtime behavior for the public Core barrels, with incomplete or infrastructure-level exports identified explicitly."
       previous={{ title: 'Build & deployment', href: '/docs/operations/build-deployment' }}
@@ -19,12 +19,11 @@ export function APIReference() {
     >
       <Section id="application-api" title="Application and framework">
         <ReferenceTable rows={[
-          { name: '@Application(options?)', signature: 'Options → ClassDecorator', description: 'Marks the single ExpressX application, registers it as a singleton, and stores options metadata.', notes: 'Class must extend ExpressX. prefix/version are stored but not applied.' },
+          { name: '@Application()', signature: 'ClassDecorator', description: 'Marks the single ExpressX application and registers it as a singleton.', notes: 'Class must extend ExpressX; a second application registration throws.' },
           { name: 'ExpressX', signature: 'abstract class', description: 'Requires preInit(), onInit(app), and postInit(app) lifecycle methods.', notes: 'preInit/onInit are async; postInit is synchronous.' },
-          { name: 'ExpressXFactory.createApp<T>()', signature: 'Promise<ExpressXApp>', description: 'Scans, creates Express, runs lifecycle hooks, mounts routing/errors, locks registration, and returns the app.', notes: 'Does not listen on a port. The optional Options argument is not functionally applied.' },
+          { name: 'ExpressXFactory.createApp<T>()', signature: 'Promise<ExpressXApp>', description: 'Scans, creates Express, runs lifecycle hooks, mounts routing/errors, locks registration, and returns the app.', notes: 'Does not listen on a port.' },
           { name: 'OnInitExpressXApp.use(mw)', signature: 'this', description: 'Registers one ordinary Express request middleware before routes.', notes: 'Rejects functions whose declared arity is 4 or greater.' },
-          { name: 'Options', signature: '{ prefix?: string; version?: string }', description: 'Application/router option shape.', notes: 'Reserved but ineffective in 0.0.5.' },
-          { name: 'ExpressXApp', signature: 'interface extends Express', description: 'Type of the returned Express application with framework/version markers in its interface.', notes: 'Runtime sets expressXVersion to 1.0.0 but does not assign framework in the reviewed source.' },
+          { name: 'ExpressXApp', signature: 'interface extends Express', description: 'Returned Express application with framework/version markers.', notes: "Runtime assigns framework = 'ExpressXjs' and the installed Core package version." },
           { name: 'HttpContext', signature: '{ req: Request; res: Response }', description: 'Context passed to route middleware/interceptors and injected by @Ctx.', notes: 'Contains the original Express objects.' },
           { name: 'Request / Response / NextFn', signature: 'Express type aliases', description: 'Re-exported Express request, response, and NextFunction types.', notes: 'No custom runtime wrapping.' },
           { name: 'OnInitMiddleware', signature: 'RequestHandler-compatible type', description: 'Accepted middleware type for OnInitExpressXApp.use().', notes: 'Error middleware is rejected at runtime.' },
@@ -41,35 +40,35 @@ export function APIReference() {
           { name: '@DELETE(path)', signature: 'MethodDecorator', description: 'Registers a DELETE route.', notes: 'Uppercase export; path required.' },
           { name: '@StatusCode(code)', signature: 'method decorator', description: 'Sets fallback status for a plain handler result.', notes: 'HttpResponse/HttpErrorResponse status wins.' },
           { name: 'RouteDefinition', signature: '{ path; method; handlerName }', description: 'Metadata record written by route decorators.', notes: 'Primarily framework/tooling infrastructure.' },
-          { name: 'AppRouter.getRouter(options?)', signature: 'Router', description: 'Builds an Express Router from the static controller registry.', notes: 'Publicly exported infrastructure; options are unused.' },
+          { name: 'AppRouter.getRouter()', signature: 'Router', description: 'Builds an Express Router from the static controller registry.', notes: 'Publicly exported framework infrastructure.' },
           { name: 'ControllerRegistry', signature: 'static controllers / add()', description: 'Process-global array of decorated controller constructors.', notes: 'Duplicate constructor references are ignored; state is not reset between app factories.' },
         ]} />
       </Section>
 
       <Section id="parameter-api" title="Handler parameters">
         <ReferenceTable rows={[
+          { name: '@Param(key)', signature: 'ParameterDecorator', description: 'Injects req.params[key].', notes: 'Public as of 0.0.6; returns the raw Express string value.' },
           { name: '@Body()', signature: 'ParameterDecorator', description: 'Injects req.body.', notes: 'Requires body-parsing middleware for JSON.' },
           { name: '@Ctx()', signature: 'ParameterDecorator', description: 'Injects HttpContext.', notes: 'Supported access path for params/query/headers/request/response.' },
           { name: '@Next()', signature: 'ParameterDecorator', description: 'Injects the Express next function.', notes: 'next(error) reaches the fallback error path.' },
-          { name: 'ParamType', signature: 'enum', description: 'Internal parameter metadata categories exported by the barrel.', notes: 'PARAM/REQ/RES values exist even when corresponding decorators are unavailable.' },
+          { name: 'ParamType', signature: 'enum', description: 'Parameter metadata categories exported by the barrel.', notes: 'REQ/RES enum values exist, but no @Req/@Res decorators are exported.' },
         ]} />
-        <Callout type="warning" title="Implementation-only Param">
-          The source defines <InlineCode>Param(key)</InlineCode>, but <InlineCode>decorators/index.ts</InlineCode> does not export it. It is not part of the reachable package API in a source rebuild. <InlineCode>Req</InlineCode> and <InlineCode>Res</InlineCode> are commented out.
+        <Callout type="tip" title="Param is now part of the package API">
+          Upgrade both Core and CLI to 0.0.6 before importing <InlineCode>Param</InlineCode>. Use <InlineCode>@Ctx()</InlineCode> for query strings, headers, and direct request/response access.
         </Callout>
       </Section>
 
       <Section id="pipeline-api" title="Request pipeline">
         <ReferenceTable rows={[
           { name: 'Guard', signature: 'abstract canActivate(req)', description: 'Base class for synchronous/asynchronous route authorization.', notes: 'False becomes an Unauthorized error.' },
-          { name: '@UseGuards(...classes, priority?)', signature: 'method decorator', description: 'Adds guard classes to the priority-sorted route pipeline.', notes: 'Default priority 1; route classes use new, not DI.' },
+          { name: '@UseGuards(...classes, priority?)', signature: 'method decorator', description: 'Adds guard classes to the priority-sorted route pipeline.', notes: 'Default priority 1; classes are DI-resolved.' },
           { name: 'ExpressXMiddleware', signature: 'abstract use(ctx)', description: 'Base class for route-specific middleware.', notes: 'No next callback; returning continues.' },
-          { name: '@UseMiddlewares(...classes, priority?)', signature: 'method decorator', description: 'Adds middleware classes to the priority-sorted route pipeline.', notes: 'Default priority 3; route classes use new, not DI.' },
+          { name: '@UseMiddlewares(...classes, priority?)', signature: 'method decorator', description: 'Adds middleware classes to the priority-sorted route pipeline.', notes: 'Default priority 3; classes are DI-resolved.' },
           { name: 'ExpressXInterceptor', signature: 'abstract intercept(ctx, handler)', description: 'Base class for wrapping downstream route execution.', notes: 'Method must return a Promise.' },
           { name: 'Handler.handle()', signature: 'Promise<any>', description: 'Runs the next interceptor or controller.', notes: 'Return the awaited result from intercept().' },
           { name: 'Handler.getData(transform?)', signature: 'Promise<any>', description: 'Runs downstream and optionally transforms the result.', notes: 'An alternative to handle(), not an inspection-only method.' },
-          { name: '@UseInterceptors(...classes, priority?)', signature: 'method decorator', description: 'Adds route interceptor metadata.', notes: 'Default priority 4 is stored but route interceptors are not sorted; route classes use new.' },
+          { name: '@UseInterceptors(...classes, priority?)', signature: 'method decorator', description: 'Adds ascending-priority route interceptors.', notes: 'Default priority 4; classes are DI-resolved.' },
           { name: '@UseGlobalInterceptor()', signature: 'ClassDecorator', description: 'Registers a singleton interceptor around every route pipeline.', notes: 'Class must extend ExpressXInterceptor; resolved through DI.' },
-          { name: '@UseValidators(...classes, priority?)', signature: 'method decorator', description: 'Writes validator metadata.', notes: 'Not executed by the 0.0.5 router. Do not rely on it.' },
         ]} />
       </Section>
 
@@ -113,21 +112,23 @@ PARAM_METADATA
 GUARDS_METADATA
 MIDDLEWARES_METADATA
 INTERCEPTOR_METADATA
-VALIDATOR_METADATA
+STATUS_CODE_METADATA
 APP_TOKEN
-APP_OPTIONS`} />
-        <p>Application code rarely needs these. <InlineCode>STATUS_CODE_METADATA</InlineCode> and <InlineCode>GLOBAL_EXCEPTION_HANDLER</InlineCode> exist internally but are omitted from the common barrel.</p>
+GLOBAL_EXCEPTION_HANDLER`} />
+        <p>Application code rarely needs these symbols; they are public primarily for framework tooling and integrations.</p>
       </Section>
 
-      <Section id="infrastructure-api" title="Infrastructure exports and barrel caveats">
+      <Section id="infrastructure-api" title="Infrastructure exports">
         <ReferenceTable rows={[
-          { name: 'Kernel.start()', signature: 'Promise<ExpressXApp>', description: 'Scans once and creates/reuses the Express app.', notes: 'Factory-managed infrastructure; hardcodes expressXVersion to 1.0.0.' },
+          { name: 'Kernel.start()', signature: 'Promise<ExpressXApp>', description: 'Scans once and creates/reuses the Express app.', notes: 'Factory-managed; assigns accurate framework/version markers.' },
           { name: '@expressxjs/core/runtime', signature: 'side-effect entrypoint', description: 'Loads reflect-metadata, ts-node/register, and tsconfig-paths/register.', notes: 'Used automatically by expressx dev.' },
-          { name: 'ExpressXScanner', signature: 'class', description: 'Configuration, cache, scan, and import implementation.', notes: 'Intended package subpath exists, but the checked-in scanner source index is empty.' },
-          { name: 'ExpressXLogger', signature: 'class', description: 'Colored leveled console logger implementation.', notes: 'Older dist exports it; the checked-in logger source index is empty.' },
+          { name: 'ExpressXScanner', signature: 'class', description: 'Configuration, AST detection, cache validation, scan, and import implementation.', notes: 'Available from root and @expressxjs/core/scanner.' },
+          { name: 'EXPRESSX_CACHE_VERSION / EXPRESSX_DECORATORS', signature: 'constants', description: 'Public scanner protocol constants.', notes: 'Available from @expressxjs/core/scanner and the root barrel.' },
+          { name: 'CachedFileMetadata / FileCache / ScanConfig', signature: 'types', description: 'Public scanner and cache shapes.', notes: 'Available from @expressxjs/core/scanner and the root barrel.' },
+          { name: 'ExpressXLogger', signature: 'class', description: 'Colored leveled console logger implementation.', notes: 'Public root export used by generated projects.' },
         ]} />
-        <Callout type="warning" title="Source and built-artifact drift">
-          The local source and pre-existing <InlineCode>dist</InlineCode> disagree for scanner and logger barrels. A clean source build is the stricter source of truth for maintainers, while an already published artifact may still expose the older symbols. Avoid new application dependencies on these inconsistent exports until the package is rebuilt and published from aligned barrels.
+        <Callout type="info" title="0.0.6 aligns the package barrels">
+          The scanner, logger, framework, HTTP, routing, DI-container, and error subpaths now have explicit exports in the tagged source. The legacy <InlineCode>@expressxjs/core/dicontainer</InlineCode> path and the clearer <InlineCode>@expressxjs/core/di-container</InlineCode> alias both resolve to the same DI surface.
         </Callout>
       </Section>
     </Article>
@@ -146,17 +147,17 @@ const issues = [
   ['Controller is not discovered', 'Keep it under sourceDir, outside excluded test/build folders, include @Controller in the file, and regenerate src/.expressx/cache.json.'],
   ['Route returns 404/does not match', 'Check raw base-path + method-path concatenation for missing/double slashes. No global prefix is currently applied.'],
   ['req.body is undefined', 'Register express.json() in application.onInit before routes. Confirm Content-Type is application/json.'],
-  ['Route parameter decorator import fails', 'Param is not exported in 0.0.5. Inject @Ctx() and read ctx.req.params.'],
+  ['Route parameter decorator import fails', 'Confirm @expressxjs/core is 0.0.6 or later, then import Param from @expressxjs/core. On 0.0.5, use @Ctx() and read ctx.req.params.'],
   ['Dependency injection resolution error', 'Enable experimentalDecorators and emitDecoratorMetadata, import/register the provider, use @Inject with the exact token, and remove circular imports.'],
-  ['DI fails inside a guard/middleware/interceptor', 'Route-level pipeline classes are created with new rather than the container. Keep their constructors empty; global interceptors and exception handlers are container-resolved.'],
-  ['Validation never runs', '@UseValidators only writes unused metadata in 0.0.5. Validate with Express middleware, ExpressX route middleware, or controller code.'],
+  ['DI fails inside a guard/middleware/interceptor', 'In 0.0.6 route pipeline classes are container-resolved. Add @Injectable/@Singleton metadata, use the exact registration token, and confirm the dependency is imported.'],
+  ['UseValidators import fails after upgrading', 'The incomplete validator API was removed in 0.0.6. Validate with Express middleware, ExpressX route middleware, a schema library, or controller code.'],
   ['Middleware order is surprising', 'Guards and middleware are combined and sorted by ascending priority. Same-priority order and stacked decorators should not be relied on.'],
   ['Interceptor runs code twice', 'Return the value from await handler.handle() or getData(). Returning undefined tells the runner to continue again.'],
   ['Unmatched routes return 500', 'Register a global exception handler and preserve numeric error.status so the internal not-found error remains 404.'],
   ['ESM/CommonJS or NodeNext error', 'Keep generated type: commonjs and NodeNext compiler settings aligned. The runtime package uses require for development TypeScript and Core is published as CommonJS.'],
   ['Production cannot import a controller', 'Run expressx build before tsc, deploy dist/.expressx/cache.json, keep outDir values aligned, and run from the project root.'],
-  ['--output writes cache to an unexpected folder', 'In 0.0.5 the flag rewrites cached paths but save location still follows expressx.outDir. Update package.json and tsconfig instead of using a different flag value.'],
-  ['ExpressXLogger export is missing', 'The checked-in logger source barrel is empty. Replace generated use with console or align/rebuild the Core barrel before relying on that export.'],
+  ['Custom output cannot import a controller', 'Run expressx build --output <dir> and compile with tsc --outDir <dir>. The production cache and JavaScript must use the same directory.'],
+  ['Production cache is missing or invalid', 'Production is strict in 0.0.6. Run expressx build before tsc and deploy the complete output directory, including .expressx/cache.json.'],
 ] as const;
 
 export function Troubleshooting() {
@@ -210,7 +211,7 @@ npx expressx build --verbose`} />
 export function LimitationsVersioning() {
   return (
     <Article
-      eyebrow="ExpressX.js reference · 0.0.5"
+      eyebrow="ExpressX.js reference · 0.0.6"
       title="Limitations & versioning"
       description="A precise boundary between implemented behavior, incomplete public surfaces, and capabilities applications must supply themselves."
       previous={{ title: 'Troubleshooting', href: '/docs/reference/troubleshooting' }}
@@ -221,25 +222,22 @@ export function LimitationsVersioning() {
           <li>One decorated application with three lifecycle hooks.</li>
           <li>Controller discovery and GET, POST, PUT, PATCH, DELETE routing.</li>
           <li>Controller/service dependency injection and advanced tsyringe registration helpers.</li>
-          <li>Body/context/next parameter injection.</li>
-          <li>Guards, route middleware, route/global interceptors, structured success/error responses, and global exception handling.</li>
+          <li>Path/body/context/next parameter injection.</li>
+          <li>DI-resolved guards, route middleware, route/global interceptors, structured success/error responses, and global exception handling.</li>
           <li>CLI project/component generation, TypeScript hot reload, discovery cache preparation, and production path conversion.</li>
         </BulletList>
       </Section>
 
-      <Section id="known-gaps" title="Known 0.0.5 implementation gaps">
+      <Section id="known-gaps" title="Current 0.0.6 boundaries">
         <BulletList>
-          <li><InlineCode>Options.prefix</InlineCode> and <InlineCode>Options.version</InlineCode> are not applied.</li>
-          <li><InlineCode>@UseValidators</InlineCode> is exported but the router does not execute validators.</li>
-          <li><InlineCode>Param</InlineCode> exists in its implementation file but is not re-exported; request/response decorators are commented out.</li>
-          <li>Route-level guards, middleware, and interceptors bypass DI construction.</li>
-          <li>Route-interceptor numeric priority is ignored; equal-priority ordering elsewhere should not be treated as stable.</li>
+          <li>There is no application-level URL prefix/version option; controller and method paths are concatenated directly.</li>
+          <li>There is no first-class validator abstraction. Use ordinary or route middleware, a schema library, or application code.</li>
+          <li><InlineCode>@Req</InlineCode>, <InlineCode>@Res</InlineCode>, query, header, and cookie parameter decorators are not provided; use <InlineCode>@Ctx()</InlineCode>.</li>
           <li>An interceptor that returns undefined after calling downstream can trigger a second dispatch.</li>
           <li>Without a global handler, unmatched routes return the generic 500 fallback instead of a 404 JSON response.</li>
-          <li>The source logger and scanner barrel files do not match older local built artifacts; the CLI relies on those surfaces.</li>
-          <li><InlineCode>build --output</InlineCode> does not change the cache save root independently of configured <InlineCode>outDir</InlineCode>.</li>
           <li>The package does not publish a Node engines range or compatibility matrix.</li>
-          <li>Runtime <InlineCode>expressXVersion</InlineCode> is hardcoded to 1.0.0 while the reviewed packages are 0.0.5, and the typed <InlineCode>framework</InlineCode> marker is not assigned.</li>
+          <li>A valid production cache is trusted without checking file timestamps or sizes; regenerate it on every build.</li>
+          <li>Controller and global-component registries are process-global and are not reset between repeated factory calls in the same process.</li>
         </BulletList>
       </Section>
 
@@ -251,13 +249,13 @@ export function LimitationsVersioning() {
         <p>At 0.x versions, treat minor releases as potentially breaking until the project publishes a stability policy. Pin exact Core and CLI versions together, commit the lockfile, and review generated output when upgrading.</p>
         <CodeBlock language="json" filename="package.json" code={`{
   "dependencies": {
-    "@expressxjs/core": "0.0.5"
+    "@expressxjs/core": "0.0.6"
   },
   "devDependencies": {
-    "@expressxjs/cli": "0.0.5"
+    "@expressxjs/cli": "0.0.6"
   }
 }`} />
-        <p>For an upgrade, regenerate a sample project in a temporary directory, compare its <InlineCode>package.json</InlineCode>, tsconfig, application, bootstrap, and resource output to your codebase, then run both development and compiled production smoke tests.</p>
+        <p>When upgrading from 0.0.5, remove <InlineCode>Options</InlineCode>/<InlineCode>@UseValidators</InlineCode>/<InlineCode>Validator</InlineCode> imports, regenerate the development and production caches, and update any custom build command to pair <InlineCode>--output</InlineCode> with the same TypeScript output directory. Then run both development and compiled production smoke tests.</p>
       </Section>
 
       <Section id="documentation-policy" title="Documentation policy">

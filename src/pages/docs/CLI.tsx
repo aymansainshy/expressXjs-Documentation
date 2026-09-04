@@ -30,7 +30,7 @@ npx expressx --help
 # Global
 npm install --global @expressxjs/cli
 expressx --version`} />
-        <p>The binary name is <InlineCode>expressx</InlineCode>. The package and Core source reviewed for these docs are version 0.0.5.</p>
+        <p>The binary name is <InlineCode>expressx</InlineCode>. The package and tagged Core source reviewed for these docs are version 0.0.6.</p>
       </Section>
 
       <Section id="command-map" title="Command map">
@@ -58,10 +58,11 @@ expressx --version`} />
 
       <Section id="development-server" title="What the development server does">
         <BulletList>
+          <li>Runs a startup doctor that verifies the resolved entry file and <InlineCode>@expressxjs/core/runtime</InlineCode> before starting watchers.</li>
           <li>Loads or creates <InlineCode>src/.expressx/cache.json</InlineCode>.</li>
           <li>Checks cached file metadata and removes deleted or no-longer-decorated files.</li>
-          <li>Watches TypeScript files below <InlineCode>sourceDir</InlineCode>, excluding tests, builds, dependencies, Git, and cache folders.</li>
-          <li>Debounces changes for 300 ms, sends <InlineCode>SIGTERM</InlineCode> to the child, then starts it again.</li>
+          <li>Watches <InlineCode>.ts</InlineCode>, <InlineCode>.tsx</InlineCode>, <InlineCode>.mts</InlineCode>, and <InlineCode>.cts</InlineCode> below <InlineCode>sourceDir</InlineCode>, excluding tests, declarations, builds, dependencies, Git, and cache folders.</li>
+          <li>Debounces changes for 300 ms, sends <InlineCode>SIGTERM</InlineCode> to the child, and falls back to <InlineCode>SIGKILL</InlineCode> after two seconds before restarting.</li>
           <li>Launches Node with <InlineCode>--require @expressxjs/core/runtime</InlineCode> and <InlineCode>--enable-source-maps</InlineCode>.</li>
           <li>Sets <InlineCode>EXPRESSX_RUNTIME=ts</InlineCode> and defaults <InlineCode>NODE_ENV</InlineCode> to <InlineCode>development</InlineCode>.</li>
           <li>Closes watchers and the child on <InlineCode>SIGINT</InlineCode>/<InlineCode>SIGTERM</InlineCode>.</li>
@@ -82,7 +83,7 @@ export function CLICommands() {
     <Article
       eyebrow="ExpressX.js CLI"
       title="CLI commands"
-      description="Complete syntax, arguments, options, examples, and output behavior for every command implemented in version 0.0.5."
+      description="Complete syntax, arguments, options, examples, and output behavior for every command implemented in version 0.0.6."
       previous={{ title: 'CLI overview', href: '/docs/cli' }}
       next={{ title: 'Generators', href: '/docs/cli/generators' }}
     >
@@ -97,7 +98,7 @@ expressx create <project-name> [options]
         <ReferenceTable rows={[
           { name: 'default', signature: 'template', description: 'Application, HTTP entrypoint, and users controller/service/DTO CRUD resource.', notes: 'Leanest generated template.' },
           { name: 'api', signature: 'template', description: 'Default plus a global exception handler.', notes: 'Useful baseline for REST APIs.' },
-          { name: 'full', signature: 'template (default)', description: 'API plus API-key guard, route logger, timing interceptor, and global response envelope interceptor.', notes: 'Demonstrates the entire implemented pipeline.' },
+          { name: 'full', signature: 'template (default)', description: 'API plus route request logger, timing interceptor, and global response-envelope interceptor.', notes: 'Demonstrates middleware and both interceptor scopes.' },
         ]} />
         <CodeBlock language="bash" code={`expressx new my-api
 expressx new my-api --template api
@@ -114,7 +115,7 @@ expressx start [node-flags] [application-flags]`} />
 expressx dev --inspect-brk=127.0.0.1:9230
 expressx dev --max-old-space-size=4096
 expressx dev --trace-warnings --cpu-prof`} />
-          <p>The classifier contains a broad list of inspector, memory, tracing, profiling, TLS, diagnostics, module-loader, source-map, and experimental flags. For flags that take a separate value, only a known subset consumes the following argument as a Node value; the <InlineCode>--flag=value</InlineCode> form is the least ambiguous.</p>
+          <p>The classifier uses Node's own <InlineCode>allowedNodeEnvironmentFlags</InlineCode> set, while known application flags are kept after the entrypoint. For Node flags that take a separate value, only a known subset consumes the following argument; the <InlineCode>--flag=value</InlineCode> form is the least ambiguous.</p>
         </Subsection>
         <Subsection id="app-flags" title="Application flags">
           <CodeBlock language="bash" code={`expressx dev --port 4000 --env staging --verbose`} />
@@ -140,8 +141,6 @@ expressx g dto Product --force`} />
         <CodeBlock language="text" code={`expressx build [options]
 
 -o, --output <dir>   Rewrite cached compiled paths to this directory
-    --minify          Print a minification configuration hint
-    --sourcemap       Print a source-map configuration hint
     --verbose         Print scan/build details`} />
         <p>The command performs two tasks: a full development scan saved to <InlineCode>sourceDir/.expressx/cache.json</InlineCode>, then conversion of those TypeScript paths to JavaScript paths for a production cache. It does not invoke <InlineCode>tsc</InlineCode>, bundle, minify, or generate source maps.</p>
         <CodeBlock language="bash" code={`# Normal complete project build
@@ -149,8 +148,8 @@ expressx build && tsc
 
 # Diagnostic detail
 expressx build --verbose`} />
-        <Callout type="warning" title="--output behavior in 0.0.5">
-          The option changes paths recorded inside the production cache and the printed summary, but <InlineCode>saveCache(false)</InlineCode> still writes the cache directory under configured <InlineCode>expressx.outDir</InlineCode>. Keep <InlineCode>--output</InlineCode>, <InlineCode>expressx.outDir</InlineCode>, and <InlineCode>compilerOptions.outDir</InlineCode> identical; changing package/tsconfig values is safer than relying on the flag alone.
+        <Callout type="tip" title="Custom output is fixed in 0.0.6">
+          <InlineCode>expressx build --output build</InlineCode> writes <InlineCode>build/.expressx/cache.json</InlineCode> and records compiled paths below <InlineCode>build</InlineCode>. Compile into the same directory with <InlineCode>tsc --outDir build</InlineCode>.
         </Callout>
       </Section>
 
@@ -188,7 +187,7 @@ export function Generators() {
       </Section>
 
       <Section id="naming" title="Naming rules">
-        <p>Input names become PascalCase classes and kebab-case files. A matching type suffix is removed before being added once. Route names use a small English pluralizer:</p>
+        <p>Input names become PascalCase classes and kebab-case files. A matching type suffix is removed before being added once. Version 0.0.6 rejects a name that cannot become a valid TypeScript identifier. Route names use a small English pluralizer:</p>
         <CodeBlock language="text" code={`user-profile  → UserProfileController → user-profile.controller.ts → /user-profiles
 category      → CategoryController    → category.controller.ts     → /categories
 box           → BoxController         → box.controller.ts          → /boxes`} />
@@ -200,7 +199,7 @@ box           → BoxController         → box.controller.ts          → /boxe
 ├── product.controller.ts
 ├── product.dto.ts
 └── product.service.ts`} />
-        <p>The generated controller injects the generated service and registers <InlineCode>GET /</InlineCode>, <InlineCode>GET /:id</InlineCode>, <InlineCode>POST /</InlineCode>, <InlineCode>PUT /:id</InlineCode>, and <InlineCode>DELETE /:id</InlineCode>. It uses <InlineCode>@Ctx()</InlineCode> for route parameters because <InlineCode>@Param</InlineCode> is not publicly exported.</p>
+        <p>The generated controller injects the generated service and registers <InlineCode>GET /</InlineCode>, <InlineCode>GET /:id</InlineCode>, <InlineCode>POST /</InlineCode>, <InlineCode>PUT /:id</InlineCode>, and <InlineCode>DELETE /:id</InlineCode>. The current template reads route parameters through <InlineCode>@Ctx()</InlineCode>; application code may instead use the public <InlineCode>@Param('id')</InlineCode> decorator.</p>
       </Section>
 
       <Section id="custom-path" title="Custom paths, preview, and overwrite">

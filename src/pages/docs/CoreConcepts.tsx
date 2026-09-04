@@ -16,10 +16,10 @@ export function ApplicationLifecycle() {
       title="Application & lifecycle"
       description="The application class coordinates startup while ExpressXFactory creates and configures the underlying Express application."
       previous={{ title: 'Project structure', href: '/docs/getting-started/project-structure' }}
-      next={{ title: 'Auto-configuration & cache', href: '/docs/core/auto-configuration-cache' }}
+      next={{ title: 'Architecture', href: '/docs/core/architecture' }}
     >
       <Section id="application-decorator" title="The application class">
-        <Signature>@Application(options?: Options): ClassDecorator</Signature>
+        <Signature>@Application(): ClassDecorator</Signature>
         <p><InlineCode>@Application()</InlineCode> can decorate only a class that extends <InlineCode>ExpressX</InlineCode>. It registers that class as a singleton and binds it to the framework application token. Only one application decorator may be evaluated in a process; a second throws during module import.</p>
         <CodeBlock filename="src/application.ts" language="typescript" code={`import {
   Application,
@@ -44,8 +44,8 @@ export class ApiApplication extends ExpressX {
     console.log('Express environment:', app.get('env'));
   }
 }`} />
-        <Callout type="warning" title="Reserved options">
-          <InlineCode>Options</InlineCode> currently exposes <InlineCode>prefix?: string</InlineCode> and <InlineCode>version?: string</InlineCode>. The decorator stores those values and the factory passes options to the router, but the router does not apply either value in version 0.0.5. Build route prefixes directly into controller paths.
+        <Callout type="info" title="Application options removed in 0.0.6">
+          <InlineCode>@Application()</InlineCode> and <InlineCode>ExpressXFactory.createApp()</InlineCode> no longer accept the unused <InlineCode>prefix</InlineCode>/<InlineCode>version</InlineCode> option shape. Build URL prefixes directly into controller paths or mount an ordinary Express router in <InlineCode>onInit()</InlineCode>.
         </Callout>
       </Section>
 
@@ -74,7 +74,7 @@ export class ApiApplication extends ExpressX {
       </Section>
 
       <Section id="factory" title="Creating the app">
-        <Signature>ExpressXFactory.createApp&lt;T extends ExpressX&gt;(options?: Options): Promise&lt;ExpressXApp&gt;</Signature>
+        <Signature>ExpressXFactory.createApp&lt;T extends ExpressX&gt;(): Promise&lt;ExpressXApp&gt;</Signature>
         <p>The factory returns the Express application; it does not open a network port. Use Node's HTTP or HTTPS server APIs so your project owns listening, shutdown, and transport configuration.</p>
         <CodeBlock filename="src/index.ts" language="typescript" code={`import { ExpressXFactory } from '@expressxjs/core';
 import { createServer } from 'node:http';
@@ -154,7 +154,7 @@ export class UserController {
   findOne() {}
 }`} />
         <Callout type="warning" title="Path conventions">
-          Use leading slashes consistently. <InlineCode>@Controller('/users')</InlineCode> plus <InlineCode>@GET('/:id')</InlineCode> produces <InlineCode>/users/:id</InlineCode>; <InlineCode>@Controller('/users/')</InlineCode> would produce a double slash. Application <InlineCode>prefix</InlineCode> and <InlineCode>version</InlineCode> options are not applied.
+          Use leading slashes consistently. <InlineCode>@Controller('/users')</InlineCode> plus <InlineCode>@GET('/:id')</InlineCode> produces <InlineCode>/users/:id</InlineCode>; <InlineCode>@Controller('/users/')</InlineCode> would produce a double slash. ExpressX 0.0.6 has no application-level URL prefix option.
         </Callout>
       </Section>
 
