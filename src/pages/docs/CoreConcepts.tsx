@@ -160,7 +160,7 @@ export class UserController {
   findOne() {}
 }`} />
         <Callout type="warning" title="Path conventions">
-          Use leading slashes consistently. <InlineCode>@Controller('/users')</InlineCode> plus <InlineCode>@GET('/:id')</InlineCode> produces <InlineCode>/users/:id</InlineCode>; <InlineCode>@Controller('/users/')</InlineCode> would produce a double slash. ExpressX 0.0.7 has no application-level URL prefix option.
+          Use leading slashes consistently. <InlineCode>@Controller('/users')</InlineCode> plus <InlineCode>@GET('/:id')</InlineCode> produces <InlineCode>/users/:id</InlineCode>; <InlineCode>@Controller('/users/')</InlineCode> would produce a double slash. ExpressX 0.0.8 has no application-level URL prefix option.
         </Callout>
       </Section>
 

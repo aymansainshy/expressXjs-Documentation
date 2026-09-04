@@ -11,7 +11,7 @@ import {
 export function APIReference() {
   return (
     <Article
-      eyebrow="ExpressX.js reference · Core 0.0.7"
+      eyebrow="ExpressX.js reference · Core 0.0.8"
       title="API reference"
       description="Signatures and runtime behavior for the public Core barrels, with incomplete or infrastructure-level exports identified explicitly."
       previous={{ title: 'Build & deployment', href: '/docs/operations/build-deployment' }}
@@ -79,13 +79,15 @@ export function APIReference() {
         <ReferenceTable rows={[
           { name: 'Plain controller result', signature: 'any', description: 'Serializes an object, array, primitive, or null directly as JSON.', notes: 'Uses @StatusCode when present; otherwise status 200.' },
           { name: 'Direct ctx.res write', signature: 'void', description: 'Sends a response with the original Express response object.', notes: 'Automatic serialization is skipped after headers are sent.' },
-          { name: 'new HttpResponse(code, data?)', signature: 'HttpResponse<T>', description: 'Structured success response serialized as JSON.', notes: 'Defaults to status 200.' },
+          { name: 'new HttpResponse(statusCode, data?)', signature: 'HttpResponse<T>', description: 'Structured success response serialized as JSON.', notes: 'statusCode defaults to 200.' },
           { name: 'HttpResponse.ok(data)', signature: 'HttpResponse<T>', description: 'Creates status 200.', notes: 'Static convenience.' },
           { name: 'HttpResponse.created(data)', signature: 'HttpResponse<T>', description: 'Creates status 201.', notes: 'Static convenience.' },
           { name: 'HttpResponse.noContent()', signature: 'HttpResponse<void>', description: 'Creates status 204 with no data.', notes: 'Static convenience.' },
-          { name: 'HttpResponse.status(code)', signature: 'this', description: 'Mutates the framework response status.', notes: 'Chainable.' },
+          { name: 'HttpResponse.status(statusCode)', signature: 'this', description: 'Mutates the framework response statusCode.', notes: 'Chainable.' },
           { name: 'HttpResponse.body(data)', signature: 'this', description: 'Mutates framework response data.', notes: 'Chainable.' },
-          { name: 'new HttpErrorResponse(status, error)', signature: 'HttpErrorResponse', description: 'Structured JSON error result.', notes: 'May be returned directly or by an exception handler.' },
+          { name: 'new HttpErrorResponse(statusCode?, error?)', signature: 'HttpErrorResponse<T>', description: 'Structured JSON error result.', notes: 'Defaults to status 500; may be returned directly or by an exception handler.' },
+          { name: 'HttpErrorResponse.status(statusCode)', signature: 'this', description: 'Mutates the framework error statusCode.', notes: 'Chainable.' },
+          { name: 'HttpErrorResponse.errorBody(error)', signature: 'this', description: 'Mutates the typed error payload.', notes: 'Chainable.' },
           { name: 'ExceptionHandler', signature: 'abstract catch(error: unknown)', description: 'Base class for the global error handler.', notes: 'Must return HttpErrorResponse or Promise<HttpErrorResponse>; enforced at runtime.' },
           { name: '@UseGlobalExceptionHandler()', signature: 'ClassDecorator', description: 'Registers the singleton global exception handler.', notes: 'Class must extend ExceptionHandler; later registration overwrites the token.' },
           { name: 'HttpResponseHandler', signature: 'static handlerResponse / delegateUnknownErrorToExpressXHandler', description: 'Low-level JSON serialization helper used by AppRouter.', notes: 'Exported, but normal controllers should return values instead of calling it.' },
@@ -219,7 +221,7 @@ npx expressx build --verbose`} />
 export function LimitationsVersioning() {
   return (
     <Article
-      eyebrow="ExpressX.js reference · 0.0.7"
+      eyebrow="ExpressX.js reference · 0.0.8"
       title="Limitations & versioning"
       description="A precise boundary between implemented behavior, incomplete public surfaces, and capabilities applications must supply themselves."
       previous={{ title: 'Troubleshooting', href: '/docs/reference/troubleshooting' }}
@@ -236,7 +238,7 @@ export function LimitationsVersioning() {
         </BulletList>
       </Section>
 
-      <Section id="known-gaps" title="Current 0.0.7 boundaries">
+      <Section id="known-gaps" title="Current 0.0.8 boundaries">
         <BulletList>
           <li>There is no application-level URL prefix/version option; controller and method paths are concatenated directly.</li>
           <li>There is no first-class validator abstraction. Use ordinary or route middleware, a schema library, or application code.</li>
@@ -257,13 +259,13 @@ export function LimitationsVersioning() {
         <p>At 0.x versions, treat every release as potentially breaking until the project publishes a stability policy. Pin exact Core and CLI versions together, commit the lockfile, and review generated output when upgrading.</p>
         <CodeBlock language="json" filename="package.json" code={`{
   "dependencies": {
-    "@expressxjs/core": "0.0.7"
+    "@expressxjs/core": "0.0.8"
   },
   "devDependencies": {
-    "@expressxjs/cli": "0.0.7"
+    "@expressxjs/cli": "0.0.8"
   }
 }`} />
-        <p>When upgrading from 0.0.6, replace <InlineCode>Handler.getData()</InlineCode> with <InlineCode>await Handler.handle()</InlineCode>, return only <InlineCode>HttpErrorResponse</InlineCode> from global exception handlers, and test any interceptor that previously transformed thrown failures after exception resolution.</p>
+        <p>When upgrading from 0.0.7, give every route middleware a <InlineCode>NextFn</InlineCode> parameter and call <InlineCode>next()</InlineCode> when processing should continue. Replace <InlineCode>HttpResponse.code</InlineCode> with <InlineCode>HttpResponse.statusCode</InlineCode>. The new <InlineCode>HttpErrorResponse&lt;T&gt;</InlineCode> builder methods are optional; its positional constructor remains supported.</p>
       </Section>
 
       <Section id="documentation-policy" title="Documentation policy">

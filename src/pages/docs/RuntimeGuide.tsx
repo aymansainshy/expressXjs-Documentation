@@ -134,12 +134,12 @@ export class UserController {
       </Section>
 
       <Section id="http-response" title="HttpResponse">
-        <Signature>new HttpResponse&lt;T&gt;(code = 200, data?: T)</Signature>
+        <Signature>new HttpResponse&lt;T&gt;(statusCode = 200, data?: T)</Signature>
         <ReferenceTable rows={[
           { name: 'HttpResponse.ok(data)', signature: 'HttpResponse<T>', description: 'Creates a 200 response.', notes: 'Data is serialized with res.json().' },
           { name: 'HttpResponse.created(data)', signature: 'HttpResponse<T>', description: 'Creates a 201 response.', notes: 'Useful for POST handlers.' },
           { name: 'HttpResponse.noContent()', signature: 'HttpResponse<void>', description: 'Creates a 204 response with no data.', notes: 'Express omits the body for status 204.' },
-          { name: '.status(code)', signature: 'this', description: 'Mutates the response code and returns the same instance.', notes: 'No status-range validation.' },
+          { name: '.status(statusCode)', signature: 'this', description: 'Mutates the response statusCode and returns the same instance.', notes: 'No status-range validation.' },
           { name: '.body(data)', signature: 'this', description: 'Mutates response data and returns the same instance.', notes: 'The generic T fixes the accepted data type.' },
         ]} />
         <CodeBlock language="typescript" code={`return HttpResponse
@@ -148,21 +148,23 @@ export class UserController {
       </Section>
 
       <Section id="error-response" title="HttpErrorResponse">
-        <Signature>new HttpErrorResponse(statusCode: number, error: any)</Signature>
-        <p>Return this object for an expected HTTP error without throwing. The serializer uses <InlineCode>statusCode</InlineCode> and sends <InlineCode>error</InlineCode> as JSON.</p>
+        <Signature>new HttpErrorResponse&lt;T&gt;(statusCode = 500, error?: T)</Signature>
+        <p>Return this object for an expected HTTP error without throwing. The serializer uses <InlineCode>statusCode</InlineCode> and sends <InlineCode>error</InlineCode> as JSON. Use the constructor directly or chain <InlineCode>status()</InlineCode> and <InlineCode>errorBody()</InlineCode>; both builder methods return the same typed instance.</p>
         <CodeBlock language="typescript" code={`@GET('/:id')
 public findOne(@Ctx() ctx: HttpContext) {
   const record = this.records.find(ctx.req.params.id);
   return record
     ? HttpResponse.ok(record)
-    : new HttpErrorResponse(404, { message: 'Record not found' });
+    : new HttpErrorResponse<{ message: string }>()
+        .status(404)
+        .errorBody({ message: 'Record not found' });
 }`} />
       </Section>
 
       <Section id="serialization" title="Serialization rules">
         <Flow steps={['Handler result', 'Choose status', 'Choose payload', 'res.status()', 'res.json()']} />
         <BulletList>
-          <li><InlineCode>HttpResponse.code</InlineCode> wins over <InlineCode>@StatusCode</InlineCode>.</li>
+          <li><InlineCode>HttpResponse.statusCode</InlineCode> wins over <InlineCode>@StatusCode</InlineCode>.</li>
           <li><InlineCode>HttpErrorResponse.statusCode</InlineCode> wins over <InlineCode>@StatusCode</InlineCode>.</li>
           <li>A plain object, array, primitive, or <InlineCode>null</InlineCode> uses <InlineCode>@StatusCode</InlineCode> when present and status 200 otherwise.</li>
           <li>A direct <InlineCode>ctx.res</InlineCode> write sets <InlineCode>headersSent</InlineCode>, so the automatic serializer does not send a second response.</li>
@@ -281,7 +283,7 @@ export class EnvelopeInterceptor extends ExpressXInterceptor {
     const result = await next.handle();
     if (!(result instanceof HttpResponse)) return result;
 
-    return new HttpResponse(result.code, {
+    return new HttpResponse(result.statusCode, {
       data: result.data,
       path: ctx.req.originalUrl,
     });

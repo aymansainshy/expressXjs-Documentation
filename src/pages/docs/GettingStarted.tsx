@@ -20,7 +20,7 @@ export function Introduction() {
     >
       <Section id="what-it-is" title="What ExpressX.js is">
         <p>
-          ExpressX.js is an HTTP application framework built directly on Express 5. It keeps the Express request and response objects available while organizing an application around controllers, services, decorators, and lifecycle hooks. Version 0.0.7 contains two synchronized packages: <InlineCode>@expressxjs/core</InlineCode> and <InlineCode>@expressxjs/cli</InlineCode>.
+          ExpressX.js is an HTTP application framework built directly on Express 5. It keeps the Express request and response objects available while organizing an application around controllers, services, decorators, and lifecycle hooks. Version 0.0.8 contains two synchronized packages: <InlineCode>@expressxjs/core</InlineCode> and <InlineCode>@expressxjs/cli</InlineCode>.
         </p>
         <p>
           Core scans your project for decorated classes, resolves controllers and services through a tsyringe container, builds an Express router, executes the route pipeline, and serializes handler results as JSON. The CLI creates projects, generates components, maintains the discovery cache during development, and prepares that cache for production.
@@ -43,17 +43,17 @@ export function Introduction() {
           ExpressX.js currently targets JSON HTTP applications. It does not provide modules, WebSocket gateways, OpenAPI generation, database adapters, authentication strategies, queues, microservices, or a deployment platform. Add those capabilities with normal Express middleware and third-party packages when needed.
         </p>
         <Callout type="info" title="Implementation snapshot">
-          These docs describe the tagged Core and CLI source at version 0.0.7. Where an API is not wired into the runtime, the limitation is called out instead of describing intended behavior as finished behavior.
+          These docs describe the tagged Core and CLI source at version 0.0.8. Where an API is not wired into the runtime, the limitation is called out instead of describing intended behavior as finished behavior.
         </Callout>
       </Section>
 
-      <Section id="whats-new" title="What changed in 0.0.7">
+      <Section id="whats-new" title="What changed in 0.0.8">
         <div className="grid gap-4 sm:grid-cols-2">
           {[
-            ['Deterministic interceptors', 'Handler.handle() advances the chain at most once, undefined is a deliberate short circuit, and the ambiguous Handler.getData() helper has been removed.'],
-            ['Strict exception responses', 'ExceptionHandler.catch() must return HttpErrorResponse or Promise<HttpErrorResponse>, and Core verifies that contract at runtime.'],
-            ['Clear error boundaries', 'Thrown pipeline failures unwind route and global interceptors before the global exception handler converts the failure into an HTTP response.'],
-            ['Built-in fallbacks', 'Unmatched routes now return a structured 404 directly, while unhandled Express errors are wrapped without exposing their original messages.'],
+            ['Explicit middleware flow', 'Route middleware now receives NextFn and must call next() to continue. Omitting it short-circuits the route pipeline, repeated calls dispatch downstream only once, and same-priority classes keep declaration order.'],
+            ['Fluent application setup', 'onInit() now has typed, chainable helpers for JSON, URL-encoded bodies, Helmet, and CORS alongside use() for custom Express middleware.'],
+            ['Consistent response objects', 'HttpResponse now exposes statusCode instead of code. HttpErrorResponse is generic and adds chainable status() and errorBody() methods.'],
+            ['Current CLI scaffolds', 'Generated applications use the new setup helpers, generated route middleware calls next(), and new projects pin Core and CLI 0.0.8 together.'],
           ].map(([title, description]) => (
             <div key={title} className="rounded-xl border border-border bg-muted/20 p-4">
               <h3 className="font-semibold text-foreground">{title}</h3>
@@ -61,7 +61,7 @@ export function Introduction() {
             </div>
           ))}
         </div>
-        <p>Applications upgrading from 0.0.6 should replace <InlineCode>Handler.getData()</InlineCode> with <InlineCode>await Handler.handle()</InlineCode> and ensure every global exception handler returns an <InlineCode>HttpErrorResponse</InlineCode>. Core and CLI should be upgraded together.</p>
+        <p>Applications upgrading from 0.0.7 must add a <InlineCode>NextFn</InlineCode> parameter and call <InlineCode>next()</InlineCode> in every route middleware that should continue. Replace reads of <InlineCode>HttpResponse.code</InlineCode> with <InlineCode>HttpResponse.statusCode</InlineCode>. Core and CLI should be upgraded together.</p>
       </Section>
 
       <Section id="mental-model" title="Mental model">
@@ -98,7 +98,7 @@ export function Installation() {
           <li>CommonJS output, or NodeNext configured so the package's CommonJS runtime can be loaded.</li>
         </BulletList>
         <Callout type="warning" title="Node.js support policy">
-          Version 0.0.7 does not declare an <InlineCode>engines.node</InlineCode> range, so there is no source-backed minimum or officially supported Node.js matrix to quote. The generated project targets ES2021 and uses modern Node APIs. Use a maintained Node.js release and pin it in your own project until the package publishes an engines policy.
+          Version 0.0.8 does not declare an <InlineCode>engines.node</InlineCode> range, so there is no source-backed minimum or officially supported Node.js matrix to quote. The generated project targets ES2021 and uses modern Node APIs. Use a maintained Node.js release and pin it in your own project until the package publishes an engines policy.
         </Callout>
       </Section>
 

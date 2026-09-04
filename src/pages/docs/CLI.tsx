@@ -30,7 +30,7 @@ npx expressx --help
 # Global
 npm install --global @expressxjs/cli
 expressx --version`} />
-        <p>The binary name is <InlineCode>expressx</InlineCode>. The package and tagged Core source reviewed for these docs are version 0.0.7.</p>
+        <p>The binary name is <InlineCode>expressx</InlineCode>. The package and tagged Core source reviewed for these docs are version 0.0.8.</p>
       </Section>
 
       <Section id="command-map" title="Command map">
@@ -83,7 +83,7 @@ export function CLICommands() {
     <Article
       eyebrow="ExpressX.js CLI"
       title="CLI commands"
-      description="Complete syntax, arguments, options, examples, and output behavior for every command implemented in version 0.0.7."
+      description="Complete syntax, arguments, options, examples, and output behavior for every command implemented in version 0.0.8."
       previous={{ title: 'CLI overview', href: '/docs/cli' }}
       next={{ title: 'Generators', href: '/docs/cli/generators' }}
     >

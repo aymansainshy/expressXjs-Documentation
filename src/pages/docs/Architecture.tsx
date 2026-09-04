@@ -151,7 +151,7 @@ const requestStepWidths = [
 export function Architecture() {
   return (
     <Article
-      eyebrow="ExpressX.js architecture · Core 0.0.7"
+      eyebrow="ExpressX.js architecture · Core 0.0.8"
       title="How ExpressX.js works"
       description="A source-backed map of the discovery plane, bootstrap sequence, dependency container, generated router, request pipeline, and Express runtime underneath the framework."
       previous={{ title: 'Application & lifecycle', href: '/docs/core/application' }}

@@ -30,7 +30,7 @@ export function CompleteApplication() {
 │   └── user.service.ts
 ├── application.ts
 └── index.ts`} />
-        <p>Install and configure the project as shown in Installation. This example uses route middleware for validation because 0.0.7 leaves validation to application code and schema/middleware libraries.</p>
+        <p>Install and configure the project as shown in Installation. This example uses route middleware for validation because 0.0.8 leaves validation to application code and schema/middleware libraries.</p>
       </Section>
 
       <Section id="dto-service" title="DTO and service">
@@ -105,7 +105,7 @@ export class EnvelopeInterceptor extends ExpressXInterceptor {
     const result = await next.handle();
 
     if (result instanceof HttpResponse) {
-      return new HttpResponse(result.code, {
+      return new HttpResponse(result.statusCode, {
         success: true,
         data: result.data,
         path: ctx.req.originalUrl,
@@ -318,7 +318,7 @@ USER node
 EXPOSE 3000
 CMD ["node", "dist/index.js"]`} />
         <Callout type="info" title="Choose and pin your own Node image">
-          The image above is an example operational choice, not a framework support claim. Version 0.0.7 does not publish a Node engines range. Match the image to the version your application tests and supports.
+          The image above is an example operational choice, not a framework support claim. Version 0.0.8 does not publish a Node engines range. Match the image to the version your application tests and supports.
         </Callout>
       </Section>
 
