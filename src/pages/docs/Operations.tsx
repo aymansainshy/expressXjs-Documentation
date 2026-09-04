@@ -30,7 +30,7 @@ export function CompleteApplication() {
 │   └── user.service.ts
 ├── application.ts
 └── index.ts`} />
-        <p>Install and configure the project as shown in Installation. This example uses route middleware for validation because 0.0.6 intentionally leaves validation to application code and schema/middleware libraries.</p>
+        <p>Install and configure the project as shown in Installation. This example uses route middleware for validation because 0.0.7 leaves validation to application code and schema/middleware libraries.</p>
       </Section>
 
       <Section id="dto-service" title="DTO and service">
@@ -318,7 +318,7 @@ USER node
 EXPOSE 3000
 CMD ["node", "dist/index.js"]`} />
         <Callout type="info" title="Choose and pin your own Node image">
-          The image above is an example operational choice, not a framework support claim. Version 0.0.6 does not publish a Node engines range. Match the image to the version your application tests and supports.
+          The image above is an example operational choice, not a framework support claim. Version 0.0.7 does not publish a Node engines range. Match the image to the version your application tests and supports.
         </Callout>
       </Section>
 
@@ -338,7 +338,7 @@ CMD ["node", "dist/index.js"]`} />
         <BulletList>
           <li>Validate required environment variables before <InlineCode>createApp()</InlineCode>, or in <InlineCode>preInit()</InlineCode>.</li>
           <li>Register JSON limits, CORS, compression, security headers, and request logging in <InlineCode>onInit()</InlineCode> as appropriate.</li>
-          <li>Register a global exception handler that preserves 404 and intentional status values.</li>
+          <li>Register a global exception handler that normalizes thrown controller and route-pipeline failures.</li>
           <li>Expose a controller-based health endpoint.</li>
           <li>Handle server shutdown and close database connections.</li>
           <li>Test the compiled <InlineCode>npm start</InlineCode> path in CI, not only <InlineCode>npm run dev</InlineCode>.</li>

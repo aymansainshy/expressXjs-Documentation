@@ -1,6 +1,6 @@
 # ExpressX.js documentation
 
-The official developer documentation site for ExpressX.js Core and CLI 0.0.6. The content is reviewed against the tagged implementation and covers installation, architecture, application lifecycle, routing, dependency injection, request pipelines, responses, error handling, discovery, every CLI command, production builds, deployment practices, troubleshooting, and known limitations.
+The official developer documentation site for ExpressX.js Core and CLI 0.0.7. The content is reviewed against the tagged implementation and covers installation, architecture, application lifecycle, routing, dependency injection, request pipelines, responses, error handling, discovery, every CLI command, production builds, deployment practices, troubleshooting, and known limitations.
 
 ## Run locally
 

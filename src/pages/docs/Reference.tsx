@@ -11,7 +11,7 @@ import {
 export function APIReference() {
   return (
     <Article
-      eyebrow="ExpressX.js reference · Core 0.0.6"
+      eyebrow="ExpressX.js reference · Core 0.0.7"
       title="API reference"
       description="Signatures and runtime behavior for the public Core barrels, with incomplete or infrastructure-level exports identified explicitly."
       previous={{ title: 'Build & deployment', href: '/docs/operations/build-deployment' }}
@@ -65,7 +65,7 @@ export function APIReference() {
           { name: 'ExpressXMiddleware', signature: 'abstract use(ctx)', description: 'Base class for route-specific middleware.', notes: 'No next callback; returning continues.' },
           { name: '@UseMiddlewares(...classes, priority?)', signature: 'method decorator', description: 'Adds middleware classes to the shared guard/middleware priority list.', notes: 'Default priority 3; orders against both middleware and guards.' },
           { name: 'ExpressXInterceptor', signature: 'abstract intercept(ctx, handler)', description: 'Base class for wrapping downstream route execution.', notes: 'Method must return a Promise.' },
-          { name: 'Handler.handle()', signature: 'Promise<any>', description: 'Runs the next interceptor or controller.', notes: 'Return the awaited result from intercept().' },
+          { name: 'Handler.handle()', signature: 'Promise<any>', description: 'Runs the next interceptor or controller.', notes: 'Memoized per handler in 0.0.7; repeated calls share the same downstream promise.' },
           { name: '@UseInterceptors(...classes, priority?)', signature: 'method decorator', description: 'Adds ascending-priority route interceptors.', notes: 'Default priority 4; scoped only to route interceptors and cannot move them before guards or middleware.' },
           { name: '@UseGlobalInterceptor()', signature: 'ClassDecorator', description: 'Registers a singleton interceptor around every route pipeline.', notes: 'Class must extend ExpressXInterceptor; resolved through DI.' },
         ]} />
@@ -82,9 +82,9 @@ export function APIReference() {
           { name: 'HttpResponse.status(code)', signature: 'this', description: 'Mutates the framework response status.', notes: 'Chainable.' },
           { name: 'HttpResponse.body(data)', signature: 'this', description: 'Mutates framework response data.', notes: 'Chainable.' },
           { name: 'new HttpErrorResponse(status, error)', signature: 'HttpErrorResponse', description: 'Structured JSON error result.', notes: 'May be returned directly or by an exception handler.' },
-          { name: 'ExceptionHandler', signature: 'abstract catch(error)', description: 'Base class for the global error handler.', notes: 'Return may be sync/async and any type; HttpErrorResponse gives explicit status.' },
+          { name: 'ExceptionHandler', signature: 'abstract catch(error: unknown)', description: 'Base class for the global error handler.', notes: 'Must return HttpErrorResponse or Promise<HttpErrorResponse>; enforced at runtime.' },
           { name: '@UseGlobalExceptionHandler()', signature: 'ClassDecorator', description: 'Registers the singleton global exception handler.', notes: 'Class must extend ExceptionHandler; later registration overwrites the token.' },
-          { name: 'HttpResponseHandler', signature: 'static handlerResponse / handleError', description: 'Low-level JSON serialization helper used by AppRouter.', notes: 'Exported, but normal controllers should return values instead of calling it.' },
+          { name: 'HttpResponseHandler', signature: 'static handlerResponse / delegateUnknownErrorToExpressXHandler', description: 'Low-level JSON serialization helper used by AppRouter.', notes: 'Exported, but normal controllers should return values instead of calling it.' },
         ]} />
       </Section>
 
@@ -154,11 +154,13 @@ const issues = [
   ['UseValidators import fails after upgrading', 'The incomplete validator API was removed in 0.0.6. Validate with Express middleware, ExpressX route middleware, a schema library, or controller code.'],
   ['Middleware order is surprising', 'Guards and middleware are combined and sorted by ascending priority. Same-priority order and stacked decorators should not be relied on.'],
   ['Controller does not run behind an interceptor', 'Call handler.handle() to continue downstream and return its result or a transformed result. Omitting handle() intentionally short-circuits the chain.'],
-  ['Unmatched routes return 500', 'Register a global exception handler and preserve numeric error.status so the internal not-found error remains 404.'],
+  ['handler.getData is not a function', 'Version 0.0.7 removed Handler.getData(). Await handler.handle() and transform the returned value directly.'],
+  ['Global exception handler returns a generic 500', 'Return an actual HttpErrorResponse instance. Version 0.0.7 rejects plain objects, undefined, and other handler results at runtime.'],
+  ['Global exception handler does not receive an error', 'Unmatched routes and errors sent with next(error) bypass the application handler. The framework-owned 404 and Express error fallbacks handle those paths.'],
   ['ESM/CommonJS or NodeNext error', 'Keep generated type: commonjs and NodeNext compiler settings aligned. The runtime package uses require for development TypeScript and Core is published as CommonJS.'],
   ['Production cannot import a controller', 'Run expressx build before tsc, deploy dist/.expressx/cache.json, keep outDir values aligned, and run from the project root.'],
   ['Custom output cannot import a controller', 'Run expressx build --output <dir> and compile with tsc --outDir <dir>. The production cache and JavaScript must use the same directory.'],
-  ['Production cache is missing or invalid', 'Production is strict in 0.0.6. Run expressx build before tsc and deploy the complete output directory, including .expressx/cache.json.'],
+  ['Production cache is missing or invalid', 'Production has been strict since 0.0.6. Run expressx build before tsc and deploy the complete output directory, including .expressx/cache.json.'],
 ] as const;
 
 export function Troubleshooting() {
@@ -199,7 +201,7 @@ npx expressx build --verbose`} />
 
       <Section id="runtime-errors" title="Capturing runtime errors">
         <BulletList>
-          <li>Add a global exception handler early in development so route, guard, middleware, and not-found errors have stable JSON.</li>
+          <li>Add a global exception handler early in development so thrown controller, guard, middleware, and interceptor errors have stable application JSON.</li>
           <li>Use <InlineCode>expressx dev --inspect</InlineCode> for Node debugging and <InlineCode>--trace-warnings</InlineCode> for warning stacks.</li>
           <li>Test direct <InlineCode>HttpErrorResponse</InlineCode> returns separately from thrown errors; they enter the response path differently.</li>
           <li>Avoid sending a response through <InlineCode>ctx.res</InlineCode> and then throwing or returning another payload.</li>
@@ -212,7 +214,7 @@ npx expressx build --verbose`} />
 export function LimitationsVersioning() {
   return (
     <Article
-      eyebrow="ExpressX.js reference · 0.0.6"
+      eyebrow="ExpressX.js reference · 0.0.7"
       title="Limitations & versioning"
       description="A precise boundary between implemented behavior, incomplete public surfaces, and capabilities applications must supply themselves."
       previous={{ title: 'Troubleshooting', href: '/docs/reference/troubleshooting' }}
@@ -229,13 +231,13 @@ export function LimitationsVersioning() {
         </BulletList>
       </Section>
 
-      <Section id="known-gaps" title="Current 0.0.6 boundaries">
+      <Section id="known-gaps" title="Current 0.0.7 boundaries">
         <BulletList>
           <li>There is no application-level URL prefix/version option; controller and method paths are concatenated directly.</li>
           <li>There is no first-class validator abstraction. Use ordinary or route middleware, a schema library, or application code.</li>
           <li><InlineCode>@Req</InlineCode>, <InlineCode>@Res</InlineCode>, query, header, and cookie parameter decorators are not provided; use <InlineCode>@Ctx()</InlineCode>.</li>
-          <li>An interceptor that returns undefined after calling downstream can trigger a second dispatch.</li>
-          <li>Without a global handler, unmatched routes return the generic 500 fallback instead of a 404 JSON response.</li>
+          <li>Thrown errors unwind interceptors before global exception resolution; the resulting <InlineCode>HttpErrorResponse</InlineCode> does not re-enter the interceptor chain.</li>
+          <li>The built-in not-found and Express error fallbacks serialize the full <InlineCode>HttpErrorResponse</InlineCode> wrapper, while an application exception handler response serializes only its <InlineCode>error</InlineCode> payload.</li>
           <li>The package does not publish a Node engines range or compatibility matrix.</li>
           <li>A valid production cache is trusted without checking file timestamps or sizes; regenerate it on every build.</li>
           <li>Controller and global-component registries are process-global and are not reset between repeated factory calls in the same process.</li>
@@ -247,16 +249,16 @@ export function LimitationsVersioning() {
       </Section>
 
       <Section id="migration" title="Versioning and migration practice">
-        <p>At 0.x versions, treat minor releases as potentially breaking until the project publishes a stability policy. Pin exact Core and CLI versions together, commit the lockfile, and review generated output when upgrading.</p>
+        <p>At 0.x versions, treat every release as potentially breaking until the project publishes a stability policy. Pin exact Core and CLI versions together, commit the lockfile, and review generated output when upgrading.</p>
         <CodeBlock language="json" filename="package.json" code={`{
   "dependencies": {
-    "@expressxjs/core": "0.0.6"
+    "@expressxjs/core": "0.0.7"
   },
   "devDependencies": {
-    "@expressxjs/cli": "0.0.6"
+    "@expressxjs/cli": "0.0.7"
   }
 }`} />
-        <p>When upgrading from 0.0.5, remove <InlineCode>Options</InlineCode>/<InlineCode>@UseValidators</InlineCode>/<InlineCode>Validator</InlineCode> imports, regenerate the development and production caches, and update any custom build command to pair <InlineCode>--output</InlineCode> with the same TypeScript output directory. Then run both development and compiled production smoke tests.</p>
+        <p>When upgrading from 0.0.6, replace <InlineCode>Handler.getData()</InlineCode> with <InlineCode>await Handler.handle()</InlineCode>, return only <InlineCode>HttpErrorResponse</InlineCode> from global exception handlers, and test any interceptor that previously transformed thrown failures after exception resolution.</p>
       </Section>
 
       <Section id="documentation-policy" title="Documentation policy">

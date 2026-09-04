@@ -28,7 +28,7 @@ export function Footer() {
           </nav>
         </div>
         <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <span>Core and CLI documentation for version 0.0.6.</span>
+          <span>Core and CLI documentation for version 0.0.7.</span>
           <span className="flex flex-wrap items-center gap-1">Open source with <Heart className="h-3.5 w-3.5 shrink-0 fill-brand-primary text-brand-primary" /> under the MIT license.</span>
         </div>
       </div>

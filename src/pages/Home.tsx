@@ -56,7 +56,7 @@ export function Home() {
           <div>
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-brand-primary/20 bg-brand-primary/10 px-3 py-1.5 text-sm font-medium text-brand-primary">
               <span className="h-2 w-2 rounded-full bg-brand-primary" />
-              Core & CLI 0.0.6
+              Core & CLI 0.0.7
             </div>
             <h1 className="max-w-xl break-words text-4xl font-semibold leading-tight tracking-tight sm:text-6xl lg:text-7xl">
               Structured TypeScript. <span className="gradient-text">Express at heart.</span>

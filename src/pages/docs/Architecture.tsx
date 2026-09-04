@@ -151,7 +151,7 @@ const requestStepWidths = [
 export function Architecture() {
   return (
     <Article
-      eyebrow="ExpressX.js architecture · Core 0.0.6"
+      eyebrow="ExpressX.js architecture · Core 0.0.7"
       title="How ExpressX.js works"
       description="A source-backed map of the discovery plane, bootstrap sequence, dependency container, generated router, request pipeline, and Express runtime underneath the framework."
       previous={{ title: 'Application & lifecycle', href: '/docs/core/application' }}
@@ -229,7 +229,7 @@ export function Architecture() {
           <li>HTTP method decorators append method, path, and handler-name metadata.</li>
           <li>Guards and middleware are merged into one ascending-priority list. Route interceptors are sorted separately, and their priorities cannot move them before that list.</li>
           <li>Parameter and status-code metadata are captured once in the route closure.</li>
-          <li>All controllers and route pipeline classes are resolved through the shared container in 0.0.6.</li>
+          <li>All controllers and route pipeline classes are resolved through the shared container.</li>
         </BulletList>
       </Section>
 
@@ -260,8 +260,8 @@ export function Architecture() {
         <Callout type="info" title="Priorities do not cross pipeline boundaries">
           Guard and middleware priorities are compared with each other. Route-interceptor priorities are compared only with other route interceptors, so they cannot change the fixed nesting shown above.
         </Callout>
-        <Callout type="tip" title="Errors travel through the same composition model">
-          With a global exception handler, controller errors become response values inside the route-interceptor chain. Guard, middleware, and route-interceptor failures are resolved before returning through global interceptors. Unresolved failures are delegated to the mounted Express error middleware.
+        <Callout type="tip" title="Returned and thrown errors take different paths">
+          A controller that returns <InlineCode>HttpErrorResponse</InlineCode> produces a normal pipeline value that interceptors may transform. A thrown controller or pipeline failure unwinds route and global interceptors first; the global exception handler then converts it to <InlineCode>HttpErrorResponse</InlineCode>. Missing handlers, invalid handler results, and handler failures are delegated to the mounted Express error middleware.
         </Callout>
       </Section>
 

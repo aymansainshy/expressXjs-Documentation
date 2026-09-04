@@ -166,7 +166,8 @@ public findOne(@Ctx() ctx: HttpContext) {
           <li><InlineCode>HttpErrorResponse.statusCode</InlineCode> wins over <InlineCode>@StatusCode</InlineCode>.</li>
           <li>A plain object, array, primitive, or <InlineCode>null</InlineCode> uses <InlineCode>@StatusCode</InlineCode> when present and status 200 otherwise.</li>
           <li>A direct <InlineCode>ctx.res</InlineCode> write sets <InlineCode>headersSent</InlineCode>, so the automatic serializer does not send a second response.</li>
-          <li>A resolved exception may carry a separate error status through interceptors even if an interceptor converts the response object to a plain envelope.</li>
+          <li>A directly returned <InlineCode>HttpErrorResponse</InlineCode> remains a normal pipeline value, so an interceptor may deliberately transform it before serialization.</li>
+          <li>The built-in not-found and Express error fallbacks serialize the complete <InlineCode>{`{ statusCode, error }`}</InlineCode> wrapper; controller-returned and application-handler responses serialize only their <InlineCode>error</InlineCode> payload.</li>
           <li>Redirect behavior is not implemented, and route handlers are JSON-oriented by default.</li>
         </BulletList>
       </Section>
@@ -259,7 +260,7 @@ export class TimingInterceptor extends ExpressXInterceptor {
   }
 }`} />
         <Callout type="info" title="Continuation is explicit">
-          Calling <InlineCode>handle()</InlineCode> is the only way to continue to the next interceptor or controller. Return its result or a transformed result. An interceptor that does not call <InlineCode>handle()</InlineCode> deliberately short-circuits the chain.
+          Calling <InlineCode>handle()</InlineCode> is the only way to continue to the next interceptor or controller. Version 0.0.7 memoizes that downstream call, so repeated calls on the same handler do not dispatch the controller twice. Return its result or a transformed result. An interceptor that does not call <InlineCode>handle()</InlineCode> deliberately short-circuits the chain.
         </Callout>
       </Section>
 
@@ -317,7 +318,7 @@ export function ErrorHandling() {
   return (
     <Article
       title="Error handling"
-      description="Expected errors can be returned as HttpErrorResponse values; thrown failures and not-found requests can be normalized by one global exception handler."
+      description="Expected errors can be returned as HttpErrorResponse values; thrown route-pipeline failures can be normalized by one application exception handler, with built-in fallbacks for unmatched routes and Express errors."
       previous={{ title: 'Request pipeline', href: '/docs/core/request-pipeline' }}
       next={{ title: 'Discovery & configuration', href: '/docs/core/discovery-configuration' }}
     >
@@ -333,7 +334,7 @@ export function ErrorHandling() {
 
       <Section id="global-handler" title="Global exception handler">
         <Signature>@UseGlobalExceptionHandler(): ClassDecorator</Signature>
-        <p>The decorated class must extend <InlineCode>ExceptionHandler</InlineCode>. It is registered as a singleton and handles controller failures, guard/middleware failures, unmatched routes, and errors passed to Express <InlineCode>next</InlineCode>. Its <InlineCode>catch</InlineCode> method may be synchronous or asynchronous and may return any value, though <InlineCode>HttpErrorResponse</InlineCode> gives an explicit status.</p>
+        <p>The decorated class must extend <InlineCode>ExceptionHandler</InlineCode>. It is registered as a singleton and handles failures thrown by controllers, guards, route middleware, and route/global interceptors inside the generated router. Its <InlineCode>catch</InlineCode> method receives <InlineCode>unknown</InlineCode> and must return <InlineCode>HttpErrorResponse</InlineCode> or <InlineCode>Promise&lt;HttpErrorResponse&gt;</InlineCode>.</p>
         <CodeBlock filename="src/common/exceptions/app.exception-handler.ts" language="typescript" code={`import {
   ExceptionHandler,
   HttpErrorResponse,
@@ -358,28 +359,39 @@ export class AppExceptionHandler extends ExceptionHandler {
     return new HttpErrorResponse(statusCode, { statusCode, message });
   }
 }`} />
-        <p>The <InlineCode>status</InlineCode> check preserves the framework's unmatched-route status. Without it, a custom handler that maps every unknown error to 500 also turns 404s into 500s.</p>
+        <p>The <InlineCode>status</InlineCode> check preserves a numeric status attached to an application error. Unmatched routes and errors passed directly to Express with <InlineCode>next(error)</InlineCode> bypass this handler and use the built-in fallbacks described below.</p>
+        <Callout type="warning" title="The return contract is enforced">
+          Version 0.0.7 checks the handler result at runtime as well as in TypeScript. Returning a plain object, <InlineCode>undefined</InlineCode>, or any other value raises a <InlineCode>TypeError</InlineCode> and delegates to the framework fallback instead of guessing an HTTP status.
+        </Callout>
       </Section>
 
       <Section id="not-found" title="Not found handling">
-        <p>After the generated router, the factory mounts a catch-all middleware that throws an internal error with <InlineCode>status = 404</InlineCode> and message <InlineCode>Route not found: [METHOD] /path</InlineCode>. It then reaches the global exception handler. Without a handler, even this unmatched route is sent by the framework fallback as a generic 500 response.</p>
-        <Callout type="warning" title="Register a global handler for correct 404 JSON">
-          Version 0.0.6 has no built-in public 404 response body. A global exception handler that respects <InlineCode>error.status</InlineCode> is necessary if the application should return 404 rather than the no-handler generic 500.
+        <p>After the generated router, the factory mounts a catch-all middleware that returns status 404 without invoking the application exception handler. The JSON response uses the full <InlineCode>HttpErrorResponse</InlineCode> shape:</p>
+        <CodeBlock language="json" code={`{
+  "statusCode": 404,
+  "error": {
+    "message": "Route not found: [GET] /missing"
+  }
+}`} />
+        <Callout type="info" title="The 404 fallback is framework-owned">
+          Version 0.0.7 supplies this response whether or not an application exception handler is registered. Define an explicit catch-all controller route if the application needs a different 404 envelope.
         </Callout>
       </Section>
 
       <Section id="pipeline-errors" title="Errors through interceptors">
         <BulletList>
-          <li>A controller error is resolved into a value inside the route-interceptor chain, so route interceptors can transform the resulting error response.</li>
-          <li>A guard, route middleware, or route-interceptor failure is resolved outside the route-interceptor chain but remains inside global interceptors.</li>
-          <li>An error from a global interceptor reaches the mounted Express fallback handler.</li>
-          <li>If no global handler exists, unresolved errors return <InlineCode>{`{ "message": "Internal Server Error" }`}</InlineCode> with status 500.</li>
-          <li>If the custom exception handler itself throws in the fallback path, the framework returns status 500 with an unexpected-error JSON object.</li>
+          <li>A directly returned <InlineCode>HttpErrorResponse</InlineCode> is an ordinary result and travels outward through route and global interceptors.</li>
+          <li>A thrown controller failure rejects the route-interceptor chain and then the global-interceptor chain. Entered interceptors may observe the rejection with <InlineCode>try/catch</InlineCode>.</li>
+          <li>A thrown guard, middleware, route-interceptor, or global-interceptor failure unwinds the layers that had already been entered.</li>
+          <li>After the interceptor chain rejects, the global exception handler converts the failure to <InlineCode>HttpErrorResponse</InlineCode>. That resolved value is serialized directly and does not re-enter the interceptors.</li>
+          <li>If no application handler exists, unresolved errors enter the Express fallback and return status 500 as <InlineCode>{`{ "statusCode": 500, "error": { "message": "Internal Server Error" } }`}</InlineCode>.</li>
+          <li>If the custom exception handler throws or returns a value other than <InlineCode>HttpErrorResponse</InlineCode>, the same framework fallback handles that failure.</li>
+          <li>Calling injected <InlineCode>next(error)</InlineCode> enters the Express error pipeline directly and does not invoke the application exception handler.</li>
         </BulletList>
       </Section>
 
       <Section id="headers-sent" title="Errors after headers are sent">
-        <p>If an unresolved route error reaches the outer catch after response headers were sent, ExpressX calls <InlineCode>next(error)</InlineCode>. Custom handlers should also avoid writing a second response. Prefer returning framework response objects instead of mixing direct <InlineCode>res</InlineCode> writes with later throws.</p>
+        <p>If a route writes directly to <InlineCode>res</InlineCode> and later throws, the exception handler may still run, but serialization skips its result once <InlineCode>headersSent</InlineCode> is true. An unresolved failure is delegated to Express. Prefer returning framework response objects instead of mixing direct writes with later throws.</p>
       </Section>
     </Article>
   );
