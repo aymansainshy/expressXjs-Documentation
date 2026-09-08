@@ -9,6 +9,7 @@ import {
   ReferenceTable,
   Section,
   Signature,
+  Subsection,
 } from '@/components/docs/Article';
 
 export function RequestResponseGuide() {
@@ -286,11 +287,41 @@ export class EnvelopeInterceptor extends ExpressXInterceptor {
 
       <Section id="priority" title="Priority and ordering details">
         <p>The last numeric argument to <InlineCode>@UseGuards</InlineCode>, <InlineCode>@UseMiddlewares</InlineCode>, or <InlineCode>@UseInterceptors</InlineCode> is stored as the priority for every class preceding it in that decorator call.</p>
+        <Callout type="info" title="Route-interceptor priority is isolated">
+          The priority passed to <InlineCode>@UseInterceptors</InlineCode> applies only to route interceptors. It orders them against other route interceptors and is never compared with guard or middleware priorities.
+        </Callout>
         <CodeBlock language="typescript" code={`@GET('/')
 @UseGuards(SessionGuard, RoleGuard, 10)
 @UseMiddlewares(AuditMiddleware, 20)
 @UseInterceptors(TimingInterceptor, 30)
 public handler() {}`} />
+        <Subsection id="stacked-priority-example" title="Stacked decorators: worked example">
+          <p>Consider a route with guards, middleware, and an interceptor spread across several decorators:</p>
+          <CodeBlock filename="Controller method" language="typescript" code={`@GET('/')
+@UseGuards(JWTAuthGuard)
+@UseMiddlewares(LoggerMiddleware, 3)
+@UseInterceptors(ResponseEnvelopeInterceptor)
+@UseMiddlewares(LoggerMiddleware, SchemaMiddleware, 1)
+@UseGuards(JWTAuthGuard2, 4)
+public handler() {}`} />
+          <p>Assuming both guards pass and the interceptor calls <InlineCode>handle()</InlineCode>, ExpressX 0.0.7 runs this route in the following order:</p>
+          <CodeBlock filename="ExpressX 0.0.7 execution order" language="text" code={`1. JWTAuthGuard                         guard, default priority 1
+2. SchemaMiddleware                    middleware, explicit priority 1
+3. LoggerMiddleware                    middleware, explicit priority 1
+4. LoggerMiddleware                    middleware, explicit priority 3
+5. JWTAuthGuard2                       guard, explicit priority 4
+6. ResponseEnvelopeInterceptor         before handler, default priority 4
+7. handler()                           controller
+8. ResponseEnvelopeInterceptor         after handler
+9. Response serializer                 sends the final result`} />
+          <BulletList>
+            <li>The decorator's last numeric argument applies to every class before it. Without a number, guards default to 1, middleware to 3, and route interceptors to 4.</li>
+            <li>Guards and middleware are combined and sorted by ascending priority. At the same priority, guards are placed before middleware.</li>
+            <li>In 0.0.7, classes in one multi-class decorator are stored by prepending each class. The priority-1 pair therefore executes as <InlineCode>SchemaMiddleware</InlineCode> then <InlineCode>LoggerMiddleware</InlineCode>, the reverse of its written order. Use distinct priorities when exact order matters.</li>
+            <li><InlineCode>LoggerMiddleware</InlineCode> is registered twice, so it executes twice: once at priority 1 and again at priority 3.</li>
+            <li>The interceptor's priority is compared only with other route interceptors. It cannot run beside <InlineCode>JWTAuthGuard2</InlineCode> at priority 4; all guards and middleware finish before its before-handler phase begins.</li>
+          </BulletList>
+        </Subsection>
         <p>Priority changes ordering only inside a component's pipeline group. It cannot move a route interceptor before a guard or middleware because the groups always execute in this fixed nesting order:</p>
         <CodeBlock filename="Request execution order" language="text" code={`Global interceptors: before
   Guards + middleware (sorted together by ascending priority)
