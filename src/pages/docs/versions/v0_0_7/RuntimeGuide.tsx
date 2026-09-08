@@ -287,6 +287,9 @@ export class EnvelopeInterceptor extends ExpressXInterceptor {
 
       <Section id="priority" title="Priority and ordering details">
         <p>The last numeric argument to <InlineCode>@UseGuards</InlineCode>, <InlineCode>@UseMiddlewares</InlineCode>, or <InlineCode>@UseInterceptors</InlineCode> is stored as the priority for every class preceding it in that decorator call.</p>
+        <Callout type="info" title="Route-interceptor priority is isolated">
+          The priority passed to <InlineCode>@UseInterceptors</InlineCode> applies only to route interceptors. It orders them against other route interceptors and is never compared with guard or middleware priorities.
+        </Callout>
         <CodeBlock language="typescript" code={`@GET('/')
 @UseGuards(SessionGuard, RoleGuard, 10)
 @UseMiddlewares(AuditMiddleware, 20)
