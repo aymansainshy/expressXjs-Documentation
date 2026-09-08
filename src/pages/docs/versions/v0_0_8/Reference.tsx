@@ -14,8 +14,6 @@ export function APIReference() {
       eyebrow="ExpressX.js reference · Core 0.0.8"
       title="API reference"
       description="Signatures and runtime behavior for the public Core barrels, with incomplete or infrastructure-level exports identified explicitly."
-      previous={{ title: 'Build & deployment', href: '/docs/operations/build-deployment' }}
-      next={{ title: 'Troubleshooting', href: '/docs/reference/troubleshooting' }}
     >
       <Section id="application-api" title="Application and framework">
         <ReferenceTable rows={[
@@ -180,8 +178,6 @@ export function Troubleshooting() {
       eyebrow="ExpressX.js reference"
       title="Troubleshooting"
       description="Common installation, discovery, dependency injection, routing, pipeline, TypeScript, build, and runtime failures tied to the current implementation."
-      previous={{ title: 'API reference', href: '/docs/reference/api' }}
-      next={{ title: 'Limitations & versioning', href: '/docs/reference/limitations' }}
     >
       <Section id="quick-diagnostics" title="Start with these checks">
         <CodeBlock language="bash" code={`node --version
@@ -228,7 +224,6 @@ export function LimitationsVersioning() {
       eyebrow="ExpressX.js reference · 0.0.8"
       title="Limitations & versioning"
       description="A precise boundary between implemented behavior, incomplete public surfaces, and capabilities applications must supply themselves."
-      previous={{ title: 'Troubleshooting', href: '/docs/reference/troubleshooting' }}
     >
       <Section id="implemented" title="Implemented and supported in this snapshot">
         <BulletList>

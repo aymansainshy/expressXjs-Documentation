@@ -1,6 +1,6 @@
 # ExpressX.js documentation
 
-The official developer documentation site for ExpressX.js Core and CLI 0.0.8. The content is reviewed against the tagged implementation and covers installation, architecture, application lifecycle, routing, dependency injection, request pipelines, responses, error handling, discovery, every CLI command, production builds, deployment practices, troubleshooting, and known limitations.
+The official developer documentation site for ExpressXjs Core and CLI. Versioned snapshots are currently published for 0.0.8 and 0.0.7, with 0.0.8 selected as the latest release. The content is reviewed against each tagged implementation and covers installation, architecture, application lifecycle, routing, dependency injection, request pipelines, responses, error handling, discovery, every CLI command, production builds, deployment practices, troubleshooting, and known limitations.
 
 ## Run locally
 
@@ -21,19 +21,15 @@ npm run preview
 
 ## Content map
 
-- `src/pages/docs/GettingStarted.tsx` — introduction, installation, quick start, and project structure
-- `src/pages/docs/CoreConcepts.tsx` — application lifecycle, routing, and dependency injection
-- `src/pages/docs/Architecture.tsx` — under-the-hood discovery, bootstrap, routing, and request-flow diagrams
-- `src/pages/docs/AutoConfiguration.tsx` — auto-configuration, discovery cache, file tracking, and production mapping
-- `src/pages/docs/RuntimeGuide.tsx` — request/response, pipeline, errors, discovery, and configuration
-- `src/pages/docs/CLI.tsx` — CLI overview, command reference, and generators
-- `src/pages/docs/Operations.tsx` — complete application and production deployment
-- `src/pages/docs/Reference.tsx` — API reference, troubleshooting, limitations, and versioning
-- `src/data/navigation.ts` — sidebar and search navigation
+- `src/docs/registry.ts` — available releases plus the page and navigation structure used by routing, search, and the sidebar
+- `src/docs/paths.ts` — canonical versioned URL generation
+- `src/pages/docs/versions/v0_0_8` — the complete 0.0.8 documentation snapshot
+- `src/pages/docs/versions/v0_0_7` — the complete 0.0.7 documentation snapshot
+- `src/components/docs/DocsRouter.tsx` — version resolution, legacy redirects, and missing-version/page handling
 
 ## Documentation policy
 
-The current Core and CLI source is authoritative. Incomplete or disconnected surfaces are identified as limitations rather than presented as supported features. When framework behavior changes, update the relevant concept page, API reference, troubleshooting guidance, and limitations page together.
+The tagged Core and CLI source for each snapshot is authoritative. Incomplete or disconnected surfaces are identified as limitations rather than presented as supported features. When framework behavior changes, add a new version definition and content snapshot rather than modifying an older release. Update the relevant concept page, API reference, troubleshooting guidance, and limitations page together.
 
 ## Source
 

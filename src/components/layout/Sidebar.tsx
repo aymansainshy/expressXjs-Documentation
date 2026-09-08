@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ChevronRight, ChevronDown, Book, Sparkles } from 'lucide-react';
-import { docsNavigation, type NavItem } from '@/data/navigation';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { DocsVersionSelector } from '@/components/docs/DocsVersionSelector';
+import { useDocsVersion } from '@/context/DocsVersionContext';
+import type { DocsNavItem } from '@/docs/registry';
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-function SidebarItem({ item, depth = 0, onNavigate }: { item: NavItem; depth?: number; onNavigate: () => void }) {
+function SidebarItem({ item, depth = 0, onNavigate }: { item: DocsNavItem; depth?: number; onNavigate: () => void }) {
   const location = useLocation();
   const [isExpanded, setIsExpanded] = useState(() => {
     // Auto-expand if current path matches this item or its children
@@ -84,6 +86,8 @@ function SidebarItem({ item, depth = 0, onNavigate }: { item: NavItem; depth?: n
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const { definition, pathFor } = useDocsVersion();
+
   return (
     <>
       {/* Mobile overlay - z-40 to be below header (z-50) */}
@@ -102,6 +106,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       >
         <ScrollArea className="h-full">
           <div className="p-4 space-y-6">
+            <DocsVersionSelector onNavigate={onClose} />
+
             {/* Documentation sections */}
             <div className="space-y-1">
               <div className="px-3 mb-2">
@@ -109,7 +115,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   Documentation
                 </span>
               </div>
-              {docsNavigation.map((item) => (
+              {definition.navigation.map((item) => (
                 <SidebarItem key={item.id} item={item} onNavigate={onClose} />
               ))}
             </div>
@@ -117,7 +123,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             {/* Bottom links */}
             <div className="pt-4 border-t border-border space-y-1">
               <Link
-                to="/docs/reference/limitations"
+                to={pathFor('/docs/reference/limitations')}
                 onClick={onClose}
                 className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-all duration-200"
               >
@@ -125,7 +131,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 Limitations
               </Link>
               <Link
-                to="/docs/reference/api"
+                to={pathFor('/docs/reference/api')}
                 onClick={onClose}
                 className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-all duration-200"
               >

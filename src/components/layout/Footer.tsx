@@ -1,16 +1,13 @@
 import { Link } from 'react-router-dom';
 import { Github, Heart } from 'lucide-react';
-
-const links = [
-  { label: 'Introduction', href: '/docs/introduction' },
-  { label: 'Quick start', href: '/docs/getting-started/quick-start' },
-  { label: 'CLI', href: '/docs/cli' },
-  { label: 'API reference', href: '/docs/reference/api' },
-  { label: 'Troubleshooting', href: '/docs/reference/troubleshooting' },
-  { label: 'Limitations', href: '/docs/reference/limitations' },
-];
+import { useOptionalDocsVersion } from '@/context/DocsVersionContext';
+import { getLatestDocsVersion } from '@/docs/registry';
 
 export function Footer() {
+  const docsContext = useOptionalDocsVersion();
+  const docsDefinition = docsContext?.definition ?? getLatestDocsVersion();
+  const links = docsDefinition.pages.filter((page) => page.footerLabel);
+
   return (
     <footer className="border-t border-border bg-muted/30">
       <div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
@@ -24,11 +21,11 @@ export function Footer() {
             <a href="https://github.com/aymansainshy/expressXjs" target="_blank" rel="noreferrer" className="mt-5 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"><Github className="h-4 w-4" /> GitHub</a>
           </div>
           <nav className="grid min-w-0 grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3 sm:gap-x-6" aria-label="Footer navigation">
-            {links.map((link) => <Link key={link.href} to={link.href} className="text-sm text-muted-foreground transition-colors hover:text-brand-primary">{link.label}</Link>)}
+            {links.map((link) => <Link key={link.path} to={link.path} className="text-sm text-muted-foreground transition-colors hover:text-brand-primary">{link.footerLabel}</Link>)}
           </nav>
         </div>
         <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <span>Core and CLI documentation for version 0.0.8.</span>
+          <span>Core and CLI documentation for version {docsDefinition.id}.</span>
           <span className="flex flex-wrap items-center gap-1">Open source with <Heart className="h-3.5 w-3.5 shrink-0 fill-brand-primary text-brand-primary" /> under the MIT license.</span>
         </div>
       </div>

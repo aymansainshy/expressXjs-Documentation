@@ -14,8 +14,6 @@ export function CompleteApplication() {
       eyebrow="ExpressX.js example"
       title="Complete application"
       description="A runnable users API combining lifecycle hooks, controller discovery, service injection, authorization, route validation, middleware, interceptors, responses, and exception handling."
-      previous={{ title: 'Generators', href: '/docs/cli/generators' }}
-      next={{ title: 'Build & deployment', href: '/docs/operations/build-deployment' }}
     >
       <Section id="structure" title="Project structure">
         <CodeBlock language="text" code={`src/
@@ -30,7 +28,7 @@ export function CompleteApplication() {
 │   └── user.service.ts
 ├── application.ts
 └── index.ts`} />
-        <p>Install and configure the project as shown in Installation. This example uses route middleware for validation because 0.0.8 leaves validation to application code and schema/middleware libraries.</p>
+        <p>Install and configure the project as shown in Installation. This example uses route middleware for validation because 0.0.7 leaves validation to application code and schema/middleware libraries.</p>
       </Section>
 
       <Section id="dto-service" title="DTO and service">
@@ -74,17 +72,16 @@ export class ApiKeyGuard extends Guard {
     return !expected || req.headers['x-api-key'] === expected;
   }
 }`} />
-        <CodeBlock filename="src/common/middlewares/validate-user.middleware.ts" language="typescript" code={`import { ExpressXMiddleware, HttpContext, NextFn } from '@expressxjs/core';
+        <CodeBlock filename="src/common/middlewares/validate-user.middleware.ts" language="typescript" code={`import { ExpressXMiddleware, HttpContext } from '@expressxjs/core';
 
 export class ValidateUserMiddleware extends ExpressXMiddleware {
-  public use({ req }: HttpContext, next: NextFn): void {
+  public use({ req }: HttpContext): void {
     if (typeof req.body?.name !== 'string' || req.body.name.trim() === '') {
       throw Object.assign(new Error('name is required'), { status: 400 });
     }
     if (typeof req.body?.email !== 'string' || !req.body.email.includes('@')) {
       throw Object.assign(new Error('valid email is required'), { status: 400 });
     }
-    next();
   }
 }`} />
       </Section>
@@ -105,7 +102,7 @@ export class EnvelopeInterceptor extends ExpressXInterceptor {
     const result = await next.handle();
 
     if (result instanceof HttpResponse) {
-      return new HttpResponse(result.statusCode, {
+      return new HttpResponse(result.code, {
         success: true,
         data: result.data,
         path: ctx.req.originalUrl,
@@ -202,13 +199,14 @@ export class UserController {
   ExpressXApp,
   OnInitExpressXApp,
 } from '@expressxjs/core';
+import express from 'express';
 
 @Application()
 export class ApiApplication extends ExpressX {
   public async preInit(): Promise<void> {}
 
   public async onInit(app: OnInitExpressXApp): Promise<void> {
-    app.useExpressJson().useHelmet().useUrlencoded({ extended: true }).useCors();
+    app.use(express.json());
   }
 
   public postInit(app: ExpressXApp): void {
@@ -255,8 +253,6 @@ export function BuildDeployment() {
       eyebrow="ExpressX.js operations"
       title="Build & deployment"
       description="Prepare the discovery cache, compile TypeScript, ship the complete output directory, and run the Node process with your preferred deployment platform."
-      previous={{ title: 'Complete application', href: '/docs/examples/complete-application' }}
-      next={{ title: 'API reference', href: '/docs/reference/api' }}
     >
       <Section id="build-workflow" title="Production build workflow">
         <CodeBlock filename="package.json" language="json" code={`{
@@ -318,7 +314,7 @@ USER node
 EXPOSE 3000
 CMD ["node", "dist/index.js"]`} />
         <Callout type="info" title="Choose and pin your own Node image">
-          The image above is an example operational choice, not a framework support claim. Version 0.0.8 does not publish a Node engines range. Match the image to the version your application tests and supports.
+          The image above is an example operational choice, not a framework support claim. Version 0.0.7 does not publish a Node engines range. Match the image to the version your application tests and supports.
         </Callout>
       </Section>
 

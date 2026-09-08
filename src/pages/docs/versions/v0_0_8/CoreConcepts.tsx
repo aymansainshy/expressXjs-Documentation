@@ -15,8 +15,6 @@ export function ApplicationLifecycle() {
     <Article
       title="Application & lifecycle"
       description="The application class coordinates startup while ExpressXFactory creates and configures the underlying Express application."
-      previous={{ title: 'Project structure', href: '/docs/getting-started/project-structure' }}
-      next={{ title: 'Architecture', href: '/docs/core/architecture' }}
     >
       <Section id="application-decorator" title="The application class">
         <Signature>@Application(): ClassDecorator</Signature>
@@ -124,8 +122,6 @@ export function ControllersRouting() {
     <Article
       title="Controllers & routing"
       description="Controllers are singleton classes whose method metadata becomes an Express router during application bootstrap."
-      previous={{ title: 'Auto-configuration & cache', href: '/docs/core/auto-configuration-cache' }}
-      next={{ title: 'Dependency injection', href: '/docs/core/dependency-injection' }}
     >
       <Section id="controller" title="Controllers">
         <Signature>@Controller(path?: string): ClassDecorator</Signature>
@@ -204,8 +200,6 @@ export function DependencyInjection() {
     <Article
       title="Dependency injection"
       description="ExpressX.js wraps tsyringe and exposes class lifecycles, constructor injection, tokens, registries, factories, and the shared container."
-      previous={{ title: 'Controllers & routing', href: '/docs/core/controllers-routing' }}
-      next={{ title: 'Request & response', href: '/docs/core/request-response' }}
     >
       <Section id="constructor-injection" title="Constructor injection">
         <p><InlineCode>@Injectable()</InlineCode> registers metadata and defaults to singleton lifecycle. <InlineCode>@Controller()</InlineCode> also makes every controller a singleton. Use <InlineCode>@Inject(Class)</InlineCode> on constructor parameters for reliable runtime resolution.</p>

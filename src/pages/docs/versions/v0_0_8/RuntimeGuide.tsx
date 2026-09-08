@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom';
 import {
   Article,
+  DocLink,
   BulletList,
   Callout,
   CodeBlock,
@@ -16,8 +16,6 @@ export function RequestResponseGuide() {
     <Article
       title="Request & response"
       description="Route parameters are supplied by method-parameter decorators, while handlers return plain JSON values or structured response objects."
-      previous={{ title: 'Dependency injection', href: '/docs/core/dependency-injection' }}
-      next={{ title: 'Request pipeline', href: '/docs/core/request-pipeline' }}
     >
       <Section id="parameter-decorators" title="Parameter decorators">
         <ReferenceTable rows={[
@@ -185,8 +183,6 @@ export function RequestPipeline() {
     <Article
       title="Request pipeline"
       description="Global interceptors wrap a priority-sorted guard and middleware pipeline, which then runs route interceptors around the controller handler."
-      previous={{ title: 'Request & response', href: '/docs/core/request-response' }}
-      next={{ title: 'Error handling', href: '/docs/core/error-handling' }}
     >
       <Section id="execution-order" title="Actual execution order">
         <Flow steps={['Global interceptor (before)', 'Guards / middleware by priority', 'Route interceptor (before)', 'Controller', 'Route interceptor (after)', 'Global interceptor (after)', 'Serialize']} />
@@ -325,8 +321,6 @@ export function ErrorHandling() {
     <Article
       title="Error handling"
       description="Return HttpErrorResponse locally, throw into the application ExceptionHandler, or deliberately delegate to the Express error pipeline with next(error)."
-      previous={{ title: 'Request pipeline', href: '/docs/core/request-pipeline' }}
-      next={{ title: 'Discovery & configuration', href: '/docs/core/discovery-configuration' }}
     >
       <Section id="choose-error-path" title="Choose an error path">
         <ReferenceTable rows={[
@@ -508,8 +502,6 @@ export function DiscoveryConfiguration() {
     <Article
       title="Discovery & configuration"
       description="ExpressX.js discovers decorated classes by scanning configured source or output directories and caching the file list."
-      previous={{ title: 'Error handling', href: '/docs/core/error-handling' }}
-      next={{ title: 'CLI overview', href: '/docs/cli' }}
     >
       <Section id="package-options" title="package.json options">
         <ReferenceTable rows={[
@@ -537,7 +529,7 @@ export function DiscoveryConfiguration() {
 
       <Section id="cache" title="Discovery cache">
         <p>The cache records a version, environment, scan count, generation time, and each discovered file's relative path, modification time, and size. Core loads a matching-version cache without rescanning.</p>
-        <p>For the complete auto-configuration flow, development change tracking, transitive imports, production path mapping, and recovery rules, see <Link className="text-brand-primary hover:underline" to="/docs/core/auto-configuration-cache">Auto-configuration & cache</Link>.</p>
+        <p>For the complete auto-configuration flow, development change tracking, transitive imports, production path mapping, and recovery rules, see <DocLink className="text-brand-primary hover:underline" to="/docs/core/auto-configuration-cache">Auto-configuration & cache</DocLink>.</p>
         <CodeBlock filename="src/.expressx/cache.json" language="json" code={`{
   "version": "1.0.0",
   "decoratorFiles": [

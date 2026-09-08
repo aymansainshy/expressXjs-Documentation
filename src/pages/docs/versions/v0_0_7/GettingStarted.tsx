@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom';
 import {
   Article,
+  DocLink,
   BulletList,
   Callout,
   CodeBlock,
@@ -16,11 +16,10 @@ export function Introduction() {
     <Article
       title="ExpressX.js"
       description="A lightweight, decorator-based TypeScript framework that adds application lifecycle, discovery, dependency injection, request pipelines, and structured responses to Express."
-      next={{ title: 'Installation', href: '/docs/getting-started/installation' }}
     >
       <Section id="what-it-is" title="What ExpressX.js is">
         <p>
-          ExpressX.js is an HTTP application framework built directly on Express 5. It keeps the Express request and response objects available while organizing an application around controllers, services, decorators, and lifecycle hooks. Version 0.0.8 contains two synchronized packages: <InlineCode>@expressxjs/core</InlineCode> and <InlineCode>@expressxjs/cli</InlineCode>.
+          ExpressX.js is an HTTP application framework built directly on Express 5. It keeps the Express request and response objects available while organizing an application around controllers, services, decorators, and lifecycle hooks. Version 0.0.7 contains two synchronized packages: <InlineCode>@expressxjs/core</InlineCode> and <InlineCode>@expressxjs/cli</InlineCode>.
         </p>
         <p>
           Core scans your project for decorated classes, resolves controllers and services through a tsyringe container, builds an Express router, executes the route pipeline, and serializes handler results as JSON. The CLI creates projects, generates components, maintains the discovery cache during development, and prepares that cache for production.
@@ -43,17 +42,17 @@ export function Introduction() {
           ExpressX.js currently targets JSON HTTP applications. It does not provide modules, WebSocket gateways, OpenAPI generation, database adapters, authentication strategies, queues, microservices, or a deployment platform. Add those capabilities with normal Express middleware and third-party packages when needed.
         </p>
         <Callout type="info" title="Implementation snapshot">
-          These docs describe the tagged Core and CLI source at version 0.0.8. Where an API is not wired into the runtime, the limitation is called out instead of describing intended behavior as finished behavior.
+          These docs describe the tagged Core and CLI source at version 0.0.7. Where an API is not wired into the runtime, the limitation is called out instead of describing intended behavior as finished behavior.
         </Callout>
       </Section>
 
-      <Section id="whats-new" title="What changed in 0.0.8">
+      <Section id="whats-new" title="What changed in 0.0.7">
         <div className="grid gap-4 sm:grid-cols-2">
           {[
-            ['Explicit middleware flow', 'Route middleware now receives NextFn and must call next() to continue. Omitting it short-circuits the route pipeline, repeated calls dispatch downstream only once, and same-priority classes keep declaration order.'],
-            ['Fluent application setup', 'onInit() now has typed, chainable helpers for JSON, URL-encoded bodies, Helmet, and CORS alongside use() for custom Express middleware.'],
-            ['Consistent response objects', 'HttpResponse now exposes statusCode instead of code. HttpErrorResponse is generic and adds chainable status() and errorBody() methods.'],
-            ['Current CLI scaffolds', 'Generated applications use the new setup helpers, generated route middleware calls next(), and new projects pin Core and CLI 0.0.8 together.'],
+            ['Deterministic interceptors', 'Handler.handle() advances the chain at most once, undefined is a deliberate short circuit, and the ambiguous Handler.getData() helper has been removed.'],
+            ['Strict exception responses', 'ExceptionHandler.catch() must return HttpErrorResponse or Promise<HttpErrorResponse>, and Core verifies that contract at runtime.'],
+            ['Clear error boundaries', 'Thrown pipeline failures unwind route and global interceptors before the global exception handler converts the failure into an HTTP response.'],
+            ['Built-in fallbacks', 'Unmatched routes now return a structured 404 directly, while unhandled Express errors are wrapped without exposing their original messages.'],
           ].map(([title, description]) => (
             <div key={title} className="rounded-xl border border-border bg-muted/20 p-4">
               <h3 className="font-semibold text-foreground">{title}</h3>
@@ -61,7 +60,7 @@ export function Introduction() {
             </div>
           ))}
         </div>
-        <p>Applications upgrading from 0.0.7 must add a <InlineCode>NextFn</InlineCode> parameter and call <InlineCode>next()</InlineCode> in every route middleware that should continue. Replace reads of <InlineCode>HttpResponse.code</InlineCode> with <InlineCode>HttpResponse.statusCode</InlineCode>. Core and CLI should be upgraded together.</p>
+        <p>Applications upgrading from 0.0.6 should replace <InlineCode>Handler.getData()</InlineCode> with <InlineCode>await Handler.handle()</InlineCode> and ensure every global exception handler returns an <InlineCode>HttpErrorResponse</InlineCode>. Core and CLI should be upgraded together.</p>
       </Section>
 
       <Section id="mental-model" title="Mental model">
@@ -76,7 +75,7 @@ export function Introduction() {
 
       <Section id="where-next" title="Where to go next">
         <p>
-          New users should continue with <Link className="text-brand-primary hover:underline" to="/docs/getting-started/installation">Installation</Link> and <Link className="text-brand-primary hover:underline" to="/docs/getting-started/quick-start"> Quick start</Link>. Existing Express developers can jump to <Link className="text-brand-primary hover:underline" to="/docs/core/application">Application & lifecycle</Link> to see where normal Express middleware fits.
+          New users should continue with <DocLink className="text-brand-primary hover:underline" to="/docs/getting-started/installation">Installation</DocLink> and <DocLink className="text-brand-primary hover:underline" to="/docs/getting-started/quick-start"> Quick start</DocLink>. Existing Express developers can jump to <DocLink className="text-brand-primary hover:underline" to="/docs/core/application">Application & lifecycle</DocLink> to see where normal Express middleware fits.
         </p>
       </Section>
     </Article>
@@ -88,8 +87,6 @@ export function Installation() {
     <Article
       title="Installation"
       description="Install the CLI for scaffolding and development, or add Core to an existing TypeScript and Express project."
-      previous={{ title: 'Introduction', href: '/docs/introduction' }}
-      next={{ title: 'Quick start', href: '/docs/getting-started/quick-start' }}
     >
       <Section id="requirements" title="Requirements">
         <BulletList>
@@ -98,7 +95,7 @@ export function Installation() {
           <li>CommonJS output, or NodeNext configured so the package's CommonJS runtime can be loaded.</li>
         </BulletList>
         <Callout type="warning" title="Node.js support policy">
-          Version 0.0.8 does not declare an <InlineCode>engines.node</InlineCode> range, so there is no source-backed minimum or officially supported Node.js matrix to quote. The generated project targets ES2021 and uses modern Node APIs. Use a maintained Node.js release and pin it in your own project until the package publishes an engines policy.
+          Version 0.0.7 does not declare an <InlineCode>engines.node</InlineCode> range, so there is no source-backed minimum or officially supported Node.js matrix to quote. The generated project targets ES2021 and uses modern Node APIs. Use a maintained Node.js release and pin it in your own project until the package publishes an engines policy.
         </Callout>
       </Section>
 
@@ -175,8 +172,6 @@ export function QuickStart() {
     <Article
       title="Quick start"
       description="Go from an empty directory to a running API, understand the generated structure, add a service and controller, then build the production output."
-      previous={{ title: 'Installation', href: '/docs/getting-started/installation' }}
-      next={{ title: 'Project structure', href: '/docs/getting-started/project-structure' }}
     >
       <Section id="create-project" title="1. Create the project">
         <CodeBlock language="bash" code={`npx @expressxjs/cli new my-api --template default
@@ -194,6 +189,7 @@ cd my-api`} />
   ExpressXApp,
   OnInitExpressXApp,
 } from '@expressxjs/core';
+import express from 'express';
 
 @Application()
 export class MyApplication extends ExpressX {
@@ -202,7 +198,7 @@ export class MyApplication extends ExpressX {
   }
 
   public async onInit(app: OnInitExpressXApp): Promise<void> {
-    app.useExpressJson().useUrlencoded({ extended: true });
+    app.use(express.json());
   }
 
   public postInit(app: ExpressXApp): void {
@@ -314,8 +310,6 @@ export function ProjectStructure() {
     <Article
       title="Project structure"
       description="ExpressX.js requires configuration and discoverable decorated files, but does not impose a module system or a single folder layout."
-      previous={{ title: 'Quick start', href: '/docs/getting-started/quick-start' }}
-      next={{ title: 'Application & lifecycle', href: '/docs/core/application' }}
     >
       <Section id="generated-layout" title="Generated full-template layout">
         <CodeBlock language="text" code={`my-api/

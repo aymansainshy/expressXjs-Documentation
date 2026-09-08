@@ -1,26 +1,34 @@
 import type { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, type LinkProps } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Link2 } from 'lucide-react';
 import { CodeBlock, InlineCode } from '@/components/ui-custom/CodeBlock';
 import { Callout } from '@/components/ui-custom/Callout';
+import { useDocsVersion } from '@/context/DocsVersionContext';
 
 export { CodeBlock, InlineCode, Callout };
+
+export function DocLink({ to, ...props }: LinkProps) {
+  const { pathFor } = useDocsVersion();
+  const versionedTarget = typeof to === 'string' ? pathFor(to) : to;
+  return <Link to={versionedTarget} {...props} />;
+}
 
 export function Article({
   eyebrow = 'ExpressX.js documentation',
   title,
   description,
   children,
-  previous,
-  next,
 }: {
   eyebrow?: string;
   title: string;
   description: string;
   children: ReactNode;
-  previous?: { title: string; href: string };
-  next?: { title: string; href: string };
 }) {
+  const { definition, activePage } = useDocsVersion();
+  const pageIndex = activePage ? definition.pages.findIndex((page) => page.id === activePage.id) : -1;
+  const previous = pageIndex > 0 ? definition.pages[pageIndex - 1] : undefined;
+  const next = pageIndex >= 0 ? definition.pages[pageIndex + 1] : undefined;
+
   return (
     <article className="min-w-0 pb-12 sm:pb-16">
       <header className="mb-9 border-b border-border pb-8 sm:mb-12 sm:pb-10">
@@ -38,26 +46,26 @@ export function Article({
       {(previous || next) && (
         <nav className="mt-16 grid gap-4 border-t border-border pt-8 sm:grid-cols-2" aria-label="Documentation pagination">
           {previous ? (
-            <Link
-              to={previous.href}
+            <DocLink
+              to={previous.path}
               className="group rounded-xl border border-border p-4 transition-colors hover:border-brand-primary/50 hover:bg-muted/40"
             >
               <span className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 <ArrowLeft className="h-3.5 w-3.5" /> Previous
               </span>
               <span className="mt-2 block font-semibold group-hover:text-brand-primary">{previous.title}</span>
-            </Link>
+            </DocLink>
           ) : <span />}
           {next && (
-            <Link
-              to={next.href}
+            <DocLink
+              to={next.path}
               className="group rounded-xl border border-border p-4 text-right transition-colors hover:border-brand-primary/50 hover:bg-muted/40"
             >
               <span className="flex items-center justify-end gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Next <ArrowRight className="h-3.5 w-3.5" />
               </span>
               <span className="mt-2 block font-semibold group-hover:text-brand-primary">{next.title}</span>
-            </Link>
+            </DocLink>
           )}
         </nav>
       )}
