@@ -9,8 +9,10 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { docsNavigation, mainNav } from '@/data/navigation';
+import { mainNav } from '@/data/navigation';
 import { useTheme } from '@/context/ThemeContext';
+import { useOptionalDocsVersion } from '@/context/DocsVersionContext';
+import { getLatestDocsVersion } from '@/docs/registry';
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -19,16 +21,15 @@ interface HeaderProps {
 
 export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
   const { isDark, toggleTheme } = useTheme();
+  const docsContext = useOptionalDocsVersion();
   const location = useLocation();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  const searchableDocs = useMemo(
-    () => docsNavigation.flatMap((item) => item.items ?? [item]),
-    [],
-  );
+  const docsDefinition = docsContext?.definition ?? getLatestDocsVersion();
+  const searchableDocs = docsDefinition.pages;
   const searchResults = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     if (!query) return searchableDocs.slice(0, 7);
@@ -151,7 +152,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 <div className="flex items-center gap-3">
                   <Search className="w-5 h-5 text-muted-foreground" />
                   <Input
-                    placeholder="Search documentation..."
+                    placeholder={`Search ${docsDefinition.id} documentation...`}
                     className="border-0 shadow-none focus-visible:ring-0 text-lg placeholder:text-muted-foreground/50"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}

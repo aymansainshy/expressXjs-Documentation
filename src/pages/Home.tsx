@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Braces, Github, Route, Server, Terminal, Workflow } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CodeBlock } from '@/components/ui-custom/CodeBlock';
+import { LATEST_DOCS_VERSION } from '@/docs/registry';
+import { getDocsPath } from '@/docs/paths';
 
 const features = [
   {
@@ -56,7 +58,7 @@ export function Home() {
           <div>
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-brand-primary/20 bg-brand-primary/10 px-3 py-1.5 text-sm font-medium text-brand-primary">
               <span className="h-2 w-2 rounded-full bg-brand-primary" />
-              Core & CLI 0.0.8
+              Core & CLI {LATEST_DOCS_VERSION}
             </div>
             <h1 className="max-w-xl break-words text-4xl font-semibold leading-tight tracking-tight sm:text-6xl lg:text-7xl">
               Structured TypeScript. <span className="gradient-text">Express at heart.</span>
@@ -65,7 +67,7 @@ export function Home() {
               ExpressX.js is a lightweight, decorator-based framework for building JSON APIs with lifecycle hooks, dependency injection, discovery, and composable request pipelines.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link to="/docs/getting-started/quick-start">
+              <Link to={getDocsPath(LATEST_DOCS_VERSION, 'getting-started/quick-start')}>
                 <Button size="lg" className="w-full gap-2 bg-brand-primary text-white hover:bg-brand-primary-dark sm:w-auto">
                   Start building <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -117,8 +119,8 @@ export function Home() {
             Learn the implemented APIs, exact pipeline order, CLI behavior, production workflow, and current version limitations without invented framework features.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <Link to="/docs/introduction"><Button size="lg">Read the documentation</Button></Link>
-            <Link to="/docs/core/architecture"><Button size="lg" variant="outline">Explore the architecture</Button></Link>
+            <Link to={getDocsPath(LATEST_DOCS_VERSION)}><Button size="lg">Read the documentation</Button></Link>
+            <Link to={getDocsPath(LATEST_DOCS_VERSION, 'core/architecture')}><Button size="lg" variant="outline">Explore the architecture</Button></Link>
           </div>
         </div>
       </section>

@@ -15,8 +15,6 @@ export function AutoConfigurationCache() {
     <Article
       title="Auto-configuration & cache"
       description="The .expressx/cache.json file is the persistent discovery index that lets ExpressX.js find and import decorated application components without a manual controller or provider registry."
-      previous={{ title: 'Architecture', href: '/docs/core/architecture' }}
-      next={{ title: 'Controllers & routing', href: '/docs/core/controllers-routing' }}
     >
       <Section id="core-idea" title="The core idea">
         <p>

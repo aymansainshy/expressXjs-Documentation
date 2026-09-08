@@ -1,5 +1,4 @@
 import { useState, type ComponentType } from 'react';
-import { Link } from 'react-router-dom';
 import {
   ArrowDown,
   ArrowRight,
@@ -19,6 +18,7 @@ import {
 } from 'lucide-react';
 import {
   Article,
+  DocLink,
   BulletList,
   Callout,
   CodeBlock,
@@ -154,8 +154,6 @@ export function Architecture() {
       eyebrow="ExpressX.js architecture · Core 0.0.8"
       title="How ExpressX.js works"
       description="A source-backed map of the discovery plane, bootstrap sequence, dependency container, generated router, request pipeline, and Express runtime underneath the framework."
-      previous={{ title: 'Application & lifecycle', href: '/docs/core/application' }}
-      next={{ title: 'Auto-configuration & cache', href: '/docs/core/auto-configuration-cache' }}
     >
       <Section id="two-planes" title="The architecture in one view">
         <p>
@@ -289,7 +287,7 @@ export function Architecture() {
           </div>
         </div>
         <p>
-          This is why <InlineCode>.expressx/cache.json</InlineCode> is architectural, not incidental. It is the handoff between source discovery and runtime registration. Read the detailed <Link className="text-brand-primary hover:underline" to="/docs/core/auto-configuration-cache">Auto-configuration & cache guide</Link> for its schema, lifecycle, and recovery rules.
+          This is why <InlineCode>.expressx/cache.json</InlineCode> is architectural, not incidental. It is the handoff between source discovery and runtime registration. Read the detailed <DocLink className="text-brand-primary hover:underline" to="/docs/core/auto-configuration-cache">Auto-configuration & cache guide</DocLink> for its schema, lifecycle, and recovery rules.
         </p>
       </Section>
     </Article>

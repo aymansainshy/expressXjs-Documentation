@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Boxes, KeyRound, Route, WandSparkles } from 'lucide-react';
 import { CodeBlock } from '@/components/ui-custom/CodeBlock';
 import { Button } from '@/components/ui/button';
+import { LATEST_DOCS_VERSION } from '@/docs/registry';
+import { getDocsPath } from '@/docs/paths';
 
 const examples = [
   {
@@ -73,7 +75,7 @@ export function Examples() {
             <h2 className="text-2xl font-semibold">Build the complete users API</h2>
             <p className="mt-2 max-w-2xl text-muted-foreground">Follow a full example with application lifecycle, controller discovery, DI, guard, validation middleware, response envelope, and global error handling.</p>
           </div>
-          <Link className="w-full sm:w-auto" to="/docs/examples/complete-application">
+          <Link className="w-full sm:w-auto" to={getDocsPath(LATEST_DOCS_VERSION, 'examples/complete-application')}>
             <Button className="w-full gap-2 sm:w-auto">Open the guide <ArrowRight className="h-4 w-4" /></Button>
           </Link>
         </div>

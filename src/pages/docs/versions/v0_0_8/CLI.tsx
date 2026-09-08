@@ -16,8 +16,6 @@ export function CLIOverview() {
       eyebrow="ExpressX.js CLI"
       title="CLI overview"
       description="The expressx command creates projects, runs a TypeScript development server, generates components, and prepares discovery data for production builds."
-      previous={{ title: 'Discovery & configuration', href: '/docs/core/discovery-configuration' }}
-      next={{ title: 'CLI commands', href: '/docs/cli/commands' }}
     >
       <Section id="installation" title="Installation">
         <CodeBlock language="bash" code={`# One-off use
@@ -84,8 +82,6 @@ export function CLICommands() {
       eyebrow="ExpressX.js CLI"
       title="CLI commands"
       description="Complete syntax, arguments, options, examples, and output behavior for every command implemented in version 0.0.8."
-      previous={{ title: 'CLI overview', href: '/docs/cli' }}
-      next={{ title: 'Generators', href: '/docs/cli/generators' }}
     >
       <Section id="new" title="new / create">
         <CodeBlock language="text" code={`expressx new <project-name> [options]
@@ -169,8 +165,6 @@ export function Generators() {
       eyebrow="ExpressX.js CLI"
       title="Generators"
       description="Generate individual pipeline/application classes or a complete feature-first CRUD resource with consistent class, file, and route naming."
-      previous={{ title: 'CLI commands', href: '/docs/cli/commands' }}
-      next={{ title: 'Complete application', href: '/docs/examples/complete-application' }}
     >
       <Section id="types" title="Component types and aliases">
         <ReferenceTable rows={[
